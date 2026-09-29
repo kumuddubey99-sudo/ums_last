@@ -121,6 +121,8 @@ class CustomerCreateRequest(BaseModel):
     alternate_number: Optional[str] = ""
     email: Optional[str] = ""
     address: Optional[str] = ""
+    created_date: Optional[str] = None
+    updated_date: Optional[str] = None
 
 class CustomerUpdateRequest(BaseModel):
     customer_name: str
@@ -128,6 +130,8 @@ class CustomerUpdateRequest(BaseModel):
     alternate_number: Optional[str] = ""
     email: Optional[str] = ""
     address: Optional[str] = ""
+    created_date: Optional[str] = None
+    updated_date: Optional[str] = None
 
 class TransactionCreateRequest(BaseModel):
     customer_id: str
@@ -135,6 +139,8 @@ class TransactionCreateRequest(BaseModel):
     due_date: str
     total_amount: float
     note: Optional[str] = ""
+    created_date: Optional[str] = None
+    updated_date: Optional[str] = None
 
 class TransactionUpdateRequest(BaseModel):
     customer_id: str
@@ -142,6 +148,8 @@ class TransactionUpdateRequest(BaseModel):
     due_date: str
     total_amount: float
     note: Optional[str] = ""
+    created_date: Optional[str] = None
+    updated_date: Optional[str] = None
 
 class CreditItemCreateRequest(BaseModel):
     transaction_id: str
@@ -261,26 +269,33 @@ def get_customers():
 def create_customer(req: CustomerCreateRequest):
     if not req.customer_name.strip():
         raise HTTPException(status_code=400, detail="Customer name is required")
-    if not req.phone_number.strip():
+    phone = req.phone_number.strip()
+    if not phone:
         raise HTTPException(status_code=400, detail="Mobile number is required")
+    if len(phone) != 10 or not phone.isdigit():
+        raise HTTPException(status_code=400, detail="Mobile number must contain exactly 10 digits")
+    if req.alternate_number and req.alternate_number.strip():
+        alt_phone = req.alternate_number.strip()
+        if len(alt_phone) != 10 or not alt_phone.isdigit():
+            raise HTTPException(status_code=400, detail="Alternate number must contain exactly 10 digits")
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT customer_id FROM customers WHERE phone_number = ?", (req.phone_number.strip(),))
+    cursor.execute("SELECT customer_id FROM customers WHERE phone_number = ?", (phone,))
     if cursor.fetchone():
         conn.close()
         raise HTTPException(status_code=400, detail="Mobile number must be unique")
 
     now = datetime.now()
     cust_id = get_next_id("CUST", "customers", "customer_id")
-    created_date = now.strftime("%Y-%m-%d")
-    updated_date = created_date
+    created_date = req.created_date if req.created_date else now.strftime("%Y-%m-%d")
+    updated_date = req.updated_date if req.updated_date else created_date
     time_str = now.strftime("%H:%M:%S")
 
     cursor.execute("""
     INSERT INTO customers (customer_id, customer_name, phone_number, alternate_number, email, address, created_date, updated_date, time)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (cust_id, req.customer_name.strip(), req.phone_number.strip(), req.alternate_number.strip() if req.alternate_number else "", req.email.strip() if req.email else "", req.address.strip() if req.address else "", created_date, updated_date, time_str))
+    """, (cust_id, req.customer_name.strip(), phone, req.alternate_number.strip() if req.alternate_number else "", req.email.strip() if req.email else "", req.address.strip() if req.address else "", created_date, updated_date, time_str))
     conn.commit()
     conn.close()
     return {"message": "Customer created successfully", "customer_id": cust_id}
@@ -298,25 +313,34 @@ def get_customer(customer_id: str):
 
 @app.put("/api/customers/{customer_id}")
 def update_customer(customer_id: str, req: CustomerUpdateRequest):
-    if not req.customer_name.strip() or not req.phone_number.strip():
-        raise HTTPException(status_code=400, detail="Name and mobile number are required")
+    if not req.customer_name.strip():
+        raise HTTPException(status_code=400, detail="Customer name is required")
+    phone = req.phone_number.strip()
+    if not phone:
+        raise HTTPException(status_code=400, detail="Mobile number is required")
+    if len(phone) != 10 or not phone.isdigit():
+        raise HTTPException(status_code=400, detail="Mobile number must contain exactly 10 digits")
+    if req.alternate_number and req.alternate_number.strip():
+        alt_phone = req.alternate_number.strip()
+        if len(alt_phone) != 10 or not alt_phone.isdigit():
+            raise HTTPException(status_code=400, detail="Alternate number must contain exactly 10 digits")
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT customer_id FROM customers WHERE phone_number = ? AND customer_id != ?", (req.phone_number.strip(), customer_id))
+    cursor.execute("SELECT customer_id FROM customers WHERE phone_number = ? AND customer_id != ?", (phone, customer_id))
     if cursor.fetchone():
         conn.close()
         raise HTTPException(status_code=400, detail="Mobile number must be unique")
 
     now = datetime.now()
-    updated_date = now.strftime("%Y-%m-%d")
+    updated_date = req.updated_date if req.updated_date else now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M:%S")
 
     cursor.execute("""
     UPDATE customers 
     SET customer_name = ?, phone_number = ?, alternate_number = ?, email = ?, address = ?, updated_date = ?, time = ?
     WHERE customer_id = ?
-    """, (req.customer_name.strip(), req.phone_number.strip(), req.alternate_number.strip() if req.alternate_number else "", req.email.strip() if req.email else "", req.address.strip() if req.address else "", updated_date, time_str, customer_id))
+    """, (req.customer_name.strip(), phone, req.alternate_number.strip() if req.alternate_number else "", req.email.strip() if req.email else "", req.address.strip() if req.address else "", updated_date, time_str, customer_id))
     
     if cursor.rowcount == 0:
         conn.close()

@@ -71,7 +71,8 @@ def main(page: ft.Page):
 
     def logout():
         state["admin"] = None
-        state["current_view"] = "login"
+        state["has_logged_out"] = True
+        state["current_view"] = "language_select"
         render()
 
     def toggle_dark_mode(e):
@@ -221,6 +222,23 @@ def main(page: ft.Page):
                                 border_radius=6,
                                 border=ft.border.all(1, colors["border"])
                             ),
+                            # Language selector dropdown
+                            ft.Dropdown(
+                                value=get_language(),
+                                options=[
+                                    ft.dropdown.Option("English", "🌐 English"),
+                                    ft.dropdown.Option("Hindi", "🌐 हिंदी"),
+                                    ft.dropdown.Option("Marathi", "🌐 मराठी"),
+                                    ft.dropdown.Option("Marwari", "🌐 मारवाड़ी"),
+                                ],
+                                width=135,
+                                text_size=12,
+                                content_padding=ft.padding.symmetric(horizontal=8, vertical=2),
+                                border_color="#555555" if is_dark else "#BBDEFB",
+                                color="#FFFFFF",
+                                on_change=lambda e: (set_language(e.control.value), render_app()),
+                                tooltip="Change Language"
+                            ),
                             ft.TextButton(
                                 theme_icon,
                                 style=ft.ButtonStyle(color="#FFFFFF"),
@@ -330,10 +348,13 @@ def main(page: ft.Page):
         selected_lang_ref = {"lang": "English"}
 
         def choose_lang(l):
-            selected_lang_ref["lang"] = l
-            set_language(l)
-            # Directly proceed to admin registration as required in section 16
-            state["current_view"] = "register"
+            clean_l = "Marwari" if "Malwari" in l or "Marwari" in l else l
+            selected_lang_ref["lang"] = clean_l
+            set_language(clean_l)
+            if state.get("has_logged_out") or state.get("registered"):
+                state["current_view"] = "login"
+            else:
+                state["current_view"] = "register"
             render()
 
         langs = [

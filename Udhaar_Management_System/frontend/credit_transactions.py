@@ -21,18 +21,31 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
         for c in customers
     ]
 
-    now_str = datetime.now().strftime("%Y-%m-%d")
-
     id_field = ft.TextField(label=t("transaction_id"), value=txn_id, disabled=True, width=340, border_color=border_color)
     cust_dropdown = ft.Dropdown(
-        label=t("customers"),
+        label=f"{t('customers')} *",
         options=cust_options,
         value=customers[0]["customer_id"] if customers else None,
         width=340,
         border_color=border_color
     )
-    txn_date_field = ft.TextField(label=t("transaction_date"), value=now_str, width=165, border_color=border_color)
-    due_date_field = ft.TextField(label=t("due_date"), value=now_str, width=165, border_color=border_color)
+    txn_date_field = ft.TextField(label=f"{t('transaction_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    due_date_field = ft.TextField(label=f"{t('due_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    created_date_field = ft.TextField(label=f"{t('created_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    updated_date_field = ft.TextField(label=f"{t('updated_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+
+    t_picker = ft.DatePicker(on_change=lambda e: (setattr(txn_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    d_picker = ft.DatePicker(on_change=lambda e: (setattr(due_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    c_picker = ft.DatePicker(on_change=lambda e: (setattr(created_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    u_picker = ft.DatePicker(on_change=lambda e: (setattr(updated_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    if hasattr(page, "overlay"):
+        page.overlay.extend([t_picker, d_picker, c_picker, u_picker])
+
+    txn_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(t_picker, "open", True) or page.update())
+    due_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(d_picker, "open", True) or page.update())
+    created_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(c_picker, "open", True) or page.update())
+    updated_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(u_picker, "open", True) or page.update())
+
     amount_field = ft.TextField(label=f"{t('total_amount')} (₹) *", width=340, border_color=border_color)
     note_field = ft.TextField(label=t("notes"), multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
 
@@ -41,22 +54,57 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
     def on_clear(e):
         amount_field.value = ""
         note_field.value = ""
+        txn_date_field.value = ""
+        due_date_field.value = ""
+        created_date_field.value = ""
+        updated_date_field.value = ""
         msg_text.value = ""
         page.update()
 
     def on_save(e):
         msg_text.value = ""
         if not cust_dropdown.value:
-            msg_text.value = "Select customer"
+            msg_text.value = f"{t('customers')} is required."
             msg_text.color = "#D32F2F"
             page.update()
             return
+
+        if not txn_date_field.value.strip():
+            msg_text.value = f"{t('transaction_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not due_date_field.value.strip():
+            msg_text.value = f"{t('due_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not created_date_field.value.strip():
+            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not updated_date_field.value.strip():
+            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not amount_field.value.strip():
+            msg_text.value = f"{t('total_amount')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
         try:
             amt = float(amount_field.value)
             if amt <= 0:
                 raise ValueError()
         except Exception:
-            msg_text.value = "Enter valid total amount"
+            msg_text.value = "Enter valid positive total amount"
             msg_text.color = "#D32F2F"
             page.update()
             return
@@ -65,6 +113,8 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
             "customer_id": cust_dropdown.value,
             "transaction_date": txn_date_field.value.strip(),
             "due_date": due_date_field.value.strip(),
+            "created_date": created_date_field.value.strip(),
+            "updated_date": updated_date_field.value.strip(),
             "total_amount": amt,
             "note": note_field.value.strip() if note_field.value else ""
         }
@@ -237,10 +287,25 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
         border_color=border_color
     )
 
-    cust_dropdown = ft.Dropdown(label=t("customers"), options=cust_options, width=340, border_color=border_color)
-    txn_date_field = ft.TextField(label=t("transaction_date"), width=165, border_color=border_color)
-    due_date_field = ft.TextField(label=t("due_date"), width=165, border_color=border_color)
-    amount_field = ft.TextField(label=t("total_amount"), width=340, border_color=border_color)
+    cust_dropdown = ft.Dropdown(label=f"{t('customers')} *", options=cust_options, width=340, border_color=border_color)
+    txn_date_field = ft.TextField(label=f"{t('transaction_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    due_date_field = ft.TextField(label=f"{t('due_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    created_date_field = ft.TextField(label=f"{t('created_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    updated_date_field = ft.TextField(label=f"{t('updated_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+
+    up_t_picker = ft.DatePicker(on_change=lambda e: (setattr(txn_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    up_d_picker = ft.DatePicker(on_change=lambda e: (setattr(due_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    up_c_picker = ft.DatePicker(on_change=lambda e: (setattr(created_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    up_u_picker = ft.DatePicker(on_change=lambda e: (setattr(updated_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    if hasattr(page, "overlay"):
+        page.overlay.extend([up_t_picker, up_d_picker, up_c_picker, up_u_picker])
+
+    txn_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_t_picker, "open", True) or page.update())
+    due_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_d_picker, "open", True) or page.update())
+    created_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_c_picker, "open", True) or page.update())
+    updated_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_u_picker, "open", True) or page.update())
+
+    amount_field = ft.TextField(label=f"{t('total_amount')} (₹) *", width=340, border_color=border_color)
     note_field = ft.TextField(label=t("notes"), multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
     status_field = ft.TextField(label=t("payment_status"), disabled=True, width=340, border_color=border_color)
 
@@ -255,6 +320,8 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
             cust_dropdown.value = data.get("customer_id")
             txn_date_field.value = data.get("transaction_date", "")
             due_date_field.value = data.get("due_date", "")
+            created_date_field.value = data.get("created_date", "")
+            updated_date_field.value = data.get("updated_date", "")
             amount_field.value = str(data.get("total_amount", 0.0))
             note_field.value = data.get("note", "")
             status_field.value = data.get("payment_status", "Pending")
@@ -264,23 +331,64 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
     def on_clear(e):
         amount_field.value = ""
         note_field.value = ""
+        txn_date_field.value = ""
+        due_date_field.value = ""
+        created_date_field.value = ""
+        updated_date_field.value = ""
         status_field.value = ""
         msg_text.value = ""
         page.update()
 
     def on_update(e):
         tid = selected_txn_dropdown.value
-        if not tid or not cust_dropdown.value:
-            msg_text.value = "Select transaction and customer"
+        if not tid:
+            msg_text.value = "Please select a transaction to update."
             msg_text.color = "#D32F2F"
             page.update()
             return
+
+        if not cust_dropdown.value:
+            msg_text.value = f"{t('customers')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not txn_date_field.value.strip():
+            msg_text.value = f"{t('transaction_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not due_date_field.value.strip():
+            msg_text.value = f"{t('due_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not created_date_field.value.strip():
+            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not updated_date_field.value.strip():
+            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not amount_field.value.strip():
+            msg_text.value = f"{t('total_amount')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
         try:
             amt = float(amount_field.value)
             if amt <= 0:
                 raise ValueError()
         except Exception:
-            msg_text.value = "Invalid amount"
+            msg_text.value = "Enter valid positive total amount"
             msg_text.color = "#D32F2F"
             page.update()
             return
@@ -289,6 +397,8 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
             "customer_id": cust_dropdown.value,
             "transaction_date": txn_date_field.value.strip(),
             "due_date": due_date_field.value.strip(),
+            "created_date": created_date_field.value.strip(),
+            "updated_date": updated_date_field.value.strip(),
             "total_amount": amt,
             "note": note_field.value.strip() if note_field.value else ""
         }

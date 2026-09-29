@@ -30,9 +30,22 @@ def create_add_payment_view(page: ft.Page, on_saved=None):
         border_color=border_color
     )
     amount_field = ft.TextField(label=f"{t('payment_amount')} (₹) *", width=340, border_color=border_color)
-    date_field = ft.TextField(label=t("payment_date"), value=datetime.now().strftime("%Y-%m-%d"), width=340, border_color=border_color)
+    date_field = ft.TextField(label=f"{t('payment_date')} *", value="", width=340, border_color=border_color, hint_text="YYYY-MM-DD")
+    created_date_field = ft.TextField(label=f"{t('created_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    updated_date_field = ft.TextField(label=f"{t('updated_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+
+    p_date_picker = ft.DatePicker(on_change=lambda e: (setattr(date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    p_c_picker = ft.DatePicker(on_change=lambda e: (setattr(created_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    p_u_picker = ft.DatePicker(on_change=lambda e: (setattr(updated_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
+    if hasattr(page, "overlay"):
+        page.overlay.extend([p_date_picker, p_c_picker, p_u_picker])
+
+    date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(p_date_picker, "open", True) or page.update())
+    created_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(p_c_picker, "open", True) or page.update())
+    updated_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(p_u_picker, "open", True) or page.update())
+
     method_dropdown = ft.Dropdown(
-        label=t("payment_method"),
+        label=f"{t('payment_method')} *",
         options=[
             ft.dropdown.Option("Cash"),
             ft.dropdown.Option("UPI"),
@@ -48,6 +61,9 @@ def create_add_payment_view(page: ft.Page, on_saved=None):
 
     def on_clear(e):
         amount_field.value = ""
+        date_field.value = ""
+        created_date_field.value = ""
+        updated_date_field.value = ""
         ref_field.value = ""
         msg_text.value = ""
         page.update()
@@ -55,7 +71,12 @@ def create_add_payment_view(page: ft.Page, on_saved=None):
     def on_save(e):
         msg_text.value = ""
         if not txn_dropdown.value:
-            msg_text.value = "Select transaction"
+            msg_text.value = "Please select a transaction."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+        if not amount_field.value.strip():
+            msg_text.value = f"{t('payment_amount')} is required."
             msg_text.color = "#D32F2F"
             page.update()
             return
@@ -69,10 +90,30 @@ def create_add_payment_view(page: ft.Page, on_saved=None):
             page.update()
             return
 
+        if not date_field.value.strip():
+            msg_text.value = f"{t('payment_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not created_date_field.value.strip():
+            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not updated_date_field.value.strip():
+            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
         payload = {
             "transaction_id": txn_dropdown.value,
             "payment_amount": amt,
             "payment_date": date_field.value.strip(),
+            "created_date": created_date_field.value.strip(),
+            "updated_date": updated_date_field.value.strip(),
             "payment_method": method_dropdown.value,
             "reference_id": ref_field.value.strip() if ref_field.value else ""
         }

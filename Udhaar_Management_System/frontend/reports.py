@@ -65,15 +65,16 @@ def create_reports_view(page: ft.Page):
     from_date_field = ft.TextField(label="From Date", value="", hint_text="YYYY-MM-DD", width=135, border_color=border_color)
     to_date_field = ft.TextField(label="To Date", value="", hint_text="YYYY-MM-DD", width=135, border_color=border_color)
 
+    cur_l = get_language()
     lang_dropdown = ft.Dropdown(
-        label="Report Language",
+        label=t("language"),
         options=[
             ft.dropdown.Option("English"),
             ft.dropdown.Option("Hindi"),
             ft.dropdown.Option("Marathi"),
-            ft.dropdown.Option("Malwari / Rajasthani")
+            ft.dropdown.Option("Marwari"),
         ],
-        value="English",
+        value="Marwari" if "Malwari" in cur_l or "Marwari" in cur_l else cur_l,
         width=280,
         border_color=border_color
     )
@@ -93,32 +94,33 @@ def create_reports_view(page: ft.Page):
 
     def render_vertical_preview(data, r_lang):
         c_lines = []
-        c_lines.append(ft.Text("NAV DURGA SUPER MARKET", size=18, weight=ft.FontWeight.BOLD, color="#1565C0", text_align=ft.TextAlign.CENTER))
-        c_lines.append(ft.Text("UDHAAR MANAGEMENT SYSTEM", size=13, weight=ft.FontWeight.W_600, color=text_color, text_align=ft.TextAlign.CENTER))
+        c_lines.append(ft.Text(t("shop_name"), size=18, weight=ft.FontWeight.BOLD, color="#1565C0", text_align=ft.TextAlign.CENTER))
+        c_lines.append(ft.Text(t("app_title"), size=13, weight=ft.FontWeight.W_600, color=text_color, text_align=ft.TextAlign.CENTER))
         c_lines.append(ft.Text(f"{data.get('report_type', 'REPORT').upper()}", size=15, weight=ft.FontWeight.BOLD, color=text_color, text_align=ft.TextAlign.CENTER))
-        c_lines.append(ft.Text(f"Generated: {data.get('generated_at', '')} | Language: {r_lang}", size=11, color="#888888", text_align=ft.TextAlign.CENTER))
+        c_lines.append(ft.Text(f"Generated: {data.get('generated_at', '')} | {t('language')}: {r_lang}", size=11, color="#888888", text_align=ft.TextAlign.CENTER))
         c_lines.append(ft.Divider(color=border_color, height=16))
 
         cust = data.get("customer")
         if cust:
-            c_lines.append(ft.Text("Customer Information", weight=ft.FontWeight.BOLD, color="#1565C0", size=14))
-            c_lines.append(ft.Text(f"Customer ID: {cust['customer_id']}", size=12, color=text_color))
-            c_lines.append(ft.Text(f"Customer Name: {cust['customer_name']}", size=12, color=text_color))
-            c_lines.append(ft.Text(f"Mobile: {cust['phone_number']}", size=12, color=text_color))
+            c_lines.append(ft.Text(t("customer_information") if "customer_information" in TRANSLATIONS.get(r_lang, {}) else "Customer Information", weight=ft.FontWeight.BOLD, color="#1565C0", size=14))
+            c_lines.append(ft.Text(f"{t('customer_id')}: {cust['customer_id']}", size=12, color=text_color))
+            c_lines.append(ft.Text(f"{t('customer_name')}: {cust['customer_name']}", size=12, color=text_color))
+            c_lines.append(ft.Text(f"{t('mobile_number')}: {cust['phone_number']}", size=12, color=text_color))
             if cust.get("email"):
-                c_lines.append(ft.Text(f"Email: {cust['email']}", size=12, color=text_color))
+                c_lines.append(ft.Text(f"{t('email')}: {cust['email']}", size=12, color=text_color))
             if cust.get("address"):
-                c_lines.append(ft.Text(f"Address: {cust['address']}", size=12, color=text_color))
+                c_lines.append(ft.Text(f"{t('address')}: {cust['address']}", size=12, color=text_color))
             c_lines.append(ft.Divider(color=border_color, height=16))
 
         perf = data.get("performance")
         if perf:
-            c_lines.append(ft.Text("Summary & Performance", weight=ft.FontWeight.BOLD, color="#1565C0", size=14))
+            c_lines.append(ft.Text(t("summary_and_performance") if "summary_and_performance" in TRANSLATIONS.get(r_lang, {}) else "Summary & Performance", weight=ft.FontWeight.BOLD, color="#1565C0", size=14))
             c_lines.append(ft.Text(f"Total Transactions: {perf.get('total_transactions', 0)}", size=12, color=text_color))
-            c_lines.append(ft.Text(f"Total Credit: ₹{perf.get('total_credit', 0):,.2f}", size=12, color=text_color))
-            c_lines.append(ft.Text(f"Total Paid: ₹{perf.get('total_paid', 0):,.2f}", size=12, color=text_color))
-            c_lines.append(ft.Text(f"Pending Amount: ₹{perf.get('pending_amount', 0):,.2f}", size=12, weight=ft.FontWeight.BOLD, color=text_color))
-            c_lines.append(ft.Text(f"Performance: {perf.get('percentage', 0)}% ({perf.get('status', 'Good')})", size=12, color=text_color))
+            c_lines.append(ft.Text(f"{t('total_credit')}: ₹{perf.get('total_credit', 0):,.2f}", size=12, color=text_color))
+            c_lines.append(ft.Text(f"{t('total_paid')}: ₹{perf.get('total_paid', 0):,.2f}", size=12, color=text_color))
+            c_lines.append(ft.Text(f"{t('pending_amount')}: ₹{perf.get('pending_amount', 0):,.2f}", size=12, weight=ft.FontWeight.BOLD, color=text_color))
+            st = perf.get('status', 'Good')
+            c_lines.append(ft.Text(f"{t('performance_status')}: {perf.get('percentage', 0)}% ({t(st.lower()) if st.lower() in TRANSLATIONS.get(r_lang, {}) else st})", size=12, color=text_color))
             c_lines.append(ft.Divider(color=border_color, height=16))
 
         txns_list = data.get("transactions", [])

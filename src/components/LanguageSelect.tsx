@@ -11,7 +11,7 @@ export const LanguageSelect: React.FC<Props> = ({ isDark, onSelectLanguage }) =>
     { code: 'English', label: 'English', sub: 'Default' },
     { code: 'Hindi', label: 'हिंदी', sub: 'Hindi' },
     { code: 'Marathi', label: 'मराठी', sub: 'Marathi' },
-    { code: 'Malwari', label: 'मारवाड़ी / राजस्थानी', sub: 'Rajasthani' },
+    { code: 'Marwari', label: 'मारवाड़ी', sub: 'Marwari' },
   ];
 
   return (
@@ -26,7 +26,7 @@ export const LanguageSelect: React.FC<Props> = ({ isDark, onSelectLanguage }) =>
           Udhaar Management System
         </h1>
         <p className={`text-sm mb-6 ${isDark ? 'text-neutral-400' : 'text-neutral-600'}`}>
-          Select Language / भाषा चुनें
+          Select Language / भाषा चुनें / भाषा निवडा / भाषा छांटो
         </p>
 
         <div className="space-y-3">

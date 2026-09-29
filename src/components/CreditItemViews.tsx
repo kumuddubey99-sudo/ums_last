@@ -6,7 +6,6 @@ import {
   saveItems,
   getNextItemId,
   loadTransactions,
-  getTodayDate,
   getCurrentTime,
 } from '../storage';
 
@@ -40,6 +39,8 @@ export const CreditItemViews: React.FC<Props> = ({
   const [addItemName, setAddItemName] = useState('');
   const [addQty, setAddQty] = useState('1');
   const [addPrice, setAddPrice] = useState('0');
+  const [addCreatedDate, setAddCreatedDate] = useState('');
+  const [addUpdatedDate, setAddUpdatedDate] = useState('');
   const [addMsg, setAddMsg] = useState({ type: '', text: '' });
 
   // Update Item state
@@ -48,6 +49,8 @@ export const CreditItemViews: React.FC<Props> = ({
   const [updateItemName, setUpdateItemName] = useState('');
   const [updateQty, setUpdateQty] = useState('1');
   const [updatePrice, setUpdatePrice] = useState('0');
+  const [updateCreatedDate, setUpdateCreatedDate] = useState('');
+  const [updateUpdatedDate, setUpdateUpdatedDate] = useState('');
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
 
   const handleLoadItem = (idToLoad: string) => {
@@ -59,6 +62,8 @@ export const CreditItemViews: React.FC<Props> = ({
       setUpdateItemName(found.item_name);
       setUpdateQty(String(found.quantity));
       setUpdatePrice(String(found.unit_price));
+      setUpdateCreatedDate(found.created_date || (found.credited_at ? found.credited_at.slice(0, 10) : ''));
+      setUpdateUpdatedDate(found.updated_date || '');
       setUpdateMsg({ type: '', text: '' });
     }
   };
@@ -75,17 +80,29 @@ export const CreditItemViews: React.FC<Props> = ({
     setAddMsg({ type: '', text: '' });
 
     if (!addTxnId) {
-      setAddMsg({ type: 'error', text: 'Please select a transaction' });
+      setAddMsg({ type: 'error', text: `${t('transaction_id')} is required.` });
       return;
     }
     if (!addItemName.trim()) {
-      setAddMsg({ type: 'error', text: t('error_required') });
+      setAddMsg({ type: 'error', text: `${t('item_name')} is required.` });
       return;
     }
     const q = parseFloat(addQty);
+    if (isNaN(q) || q <= 0) {
+      setAddMsg({ type: 'error', text: 'Quantity must be a positive number greater than 0.' });
+      return;
+    }
     const p = parseFloat(addPrice);
-    if (isNaN(q) || isNaN(p) || q <= 0 || p < 0) {
-      setAddMsg({ type: 'error', text: 'Invalid quantity or unit price' });
+    if (isNaN(p) || p < 0) {
+      setAddMsg({ type: 'error', text: 'Unit price must be a valid non-negative number.' });
+      return;
+    }
+    if (!addCreatedDate) {
+      setAddMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
+      return;
+    }
+    if (!addUpdatedDate) {
+      setAddMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
@@ -97,7 +114,9 @@ export const CreditItemViews: React.FC<Props> = ({
       quantity: q,
       unit_price: p,
       subtotal: Math.round(q * p * 100) / 100,
-      credited_at: `${getTodayDate()} ${getCurrentTime()}`,
+      credited_at: `${addCreatedDate} ${getCurrentTime()}`,
+      created_date: addCreatedDate,
+      updated_date: addUpdatedDate,
     };
 
     saveItems([...items, newItem]);
@@ -105,6 +124,8 @@ export const CreditItemViews: React.FC<Props> = ({
     setAddItemName('');
     setAddQty('1');
     setAddPrice('0');
+    setAddCreatedDate('');
+    setAddUpdatedDate('');
     setAutoItemId(getNextItemId());
   };
 
@@ -112,18 +133,34 @@ export const CreditItemViews: React.FC<Props> = ({
     e.preventDefault();
     setUpdateMsg({ type: '', text: '' });
 
-    if (!updateSelectedId || !updateTxnId) {
-      setUpdateMsg({ type: 'error', text: 'Select item and transaction' });
+    if (!updateSelectedId) {
+      setUpdateMsg({ type: 'error', text: 'Please select an item to update.' });
+      return;
+    }
+    if (!updateTxnId) {
+      setUpdateMsg({ type: 'error', text: `${t('transaction_id')} is required.` });
       return;
     }
     if (!updateItemName.trim()) {
-      setUpdateMsg({ type: 'error', text: t('error_required') });
+      setUpdateMsg({ type: 'error', text: `${t('item_name')} is required.` });
       return;
     }
     const q = parseFloat(updateQty);
+    if (isNaN(q) || q <= 0) {
+      setUpdateMsg({ type: 'error', text: 'Quantity must be a positive number greater than 0.' });
+      return;
+    }
     const p = parseFloat(updatePrice);
-    if (isNaN(q) || isNaN(p) || q <= 0 || p < 0) {
-      setUpdateMsg({ type: 'error', text: 'Invalid quantity or price' });
+    if (isNaN(p) || p < 0) {
+      setUpdateMsg({ type: 'error', text: 'Unit price must be a valid non-negative number.' });
+      return;
+    }
+    if (!updateCreatedDate) {
+      setUpdateMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
+      return;
+    }
+    if (!updateUpdatedDate) {
+      setUpdateMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
@@ -137,6 +174,8 @@ export const CreditItemViews: React.FC<Props> = ({
           quantity: q,
           unit_price: p,
           subtotal: Math.round(q * p * 100) / 100,
+          created_date: updateCreatedDate,
+          updated_date: updateUpdatedDate,
         };
       }
       return it;
@@ -206,7 +245,7 @@ export const CreditItemViews: React.FC<Props> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('quantity')}</label>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('quantity')} *</label>
                 <input
                   type="number"
                   step="any"
@@ -216,12 +255,33 @@ export const CreditItemViews: React.FC<Props> = ({
                 />
               </div>
               <div>
-                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('unit_price')} (₹)</label>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('unit_price')} (₹) *</label>
                 <input
                   type="number"
                   step="any"
                   value={addPrice}
                   onChange={(e) => setAddPrice(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
+                <input
+                  type="date"
+                  value={addCreatedDate}
+                  onChange={(e) => setAddCreatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
+                <input
+                  type="date"
+                  value={addUpdatedDate}
+                  onChange={(e) => setAddUpdatedDate(e.target.value)}
                   className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
                 />
               </div>
@@ -250,6 +310,8 @@ export const CreditItemViews: React.FC<Props> = ({
                   setAddItemName('');
                   setAddQty('1');
                   setAddPrice('0');
+                  setAddCreatedDate('');
+                  setAddUpdatedDate('');
                   setAddMsg({ type: '', text: '' });
                 }}
                 className="px-5 py-2 rounded text-xs font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"
@@ -292,7 +354,7 @@ export const CreditItemViews: React.FC<Props> = ({
                     <th className="px-4 py-2.5 font-semibold text-center">{t('quantity')}</th>
                     <th className="px-4 py-2.5 font-semibold text-right">{t('unit_price')}</th>
                     <th className="px-4 py-2.5 font-semibold text-right">{t('subtotal')}</th>
-                    <th className="px-4 py-2.5 font-semibold">{t('credited_at')}</th>
+                    <th className="px-4 py-2.5 font-semibold">{t('created_date')}</th>
                     <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
@@ -305,7 +367,7 @@ export const CreditItemViews: React.FC<Props> = ({
                       <td className={`px-4 py-2.5 text-center ${textColor}`}>{it.quantity}</td>
                       <td className={`px-4 py-2.5 text-right tabular-nums ${textColor}`}>₹{it.unit_price.toFixed(2)}</td>
                       <td className={`px-4 py-2.5 text-right font-bold tabular-nums ${textColor}`}>₹{it.subtotal.toFixed(2)}</td>
-                      <td className={`px-4 py-2.5 ${subText}`}>{it.credited_at}</td>
+                      <td className={`px-4 py-2.5 ${subText}`}>{it.created_date || it.credited_at}</td>
                       <td className="px-4 py-2.5 text-right space-x-2">
                         <button
                           onClick={() => onNavigate('items_update', it.item_id)}
@@ -406,7 +468,7 @@ export const CreditItemViews: React.FC<Props> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('quantity')}</label>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('quantity')} *</label>
               <input
                 type="number"
                 step="any"
@@ -416,12 +478,33 @@ export const CreditItemViews: React.FC<Props> = ({
               />
             </div>
             <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('unit_price')} (₹)</label>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('unit_price')} (₹) *</label>
               <input
                 type="number"
                 step="any"
                 value={updatePrice}
                 onChange={(e) => setUpdatePrice(e.target.value)}
+                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
+              <input
+                type="date"
+                value={updateCreatedDate}
+                onChange={(e) => setUpdateCreatedDate(e.target.value)}
+                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+              />
+            </div>
+            <div>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
+              <input
+                type="date"
+                value={updateUpdatedDate}
+                onChange={(e) => setUpdateUpdatedDate(e.target.value)}
                 className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
               />
             </div>
@@ -450,6 +533,8 @@ export const CreditItemViews: React.FC<Props> = ({
                 setUpdateItemName('');
                 setUpdateQty('1');
                 setUpdatePrice('0');
+                setUpdateCreatedDate('');
+                setUpdateUpdatedDate('');
                 setUpdateMsg({ type: '', text: '' });
               }}
               className="px-5 py-2 rounded text-xs font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"

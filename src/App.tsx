@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TRANSLATIONS, Language } from './translations';
-import { Admin, searchSystem } from './storage';
+import { Admin, searchSystem, loadAdmins } from './storage';
 import { LanguageSelect } from './components/LanguageSelect';
 import { AdminAuth } from './components/AdminAuth';
 import { DashboardView } from './components/DashboardView';
@@ -50,6 +50,7 @@ export default function App() {
   // Header Search
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any | null>(null);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   const t = (key: string) => TRANSLATIONS[language]?.[key] || key;
 
@@ -85,7 +86,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentAdmin(null);
-    setStep('login');
+    setStep('language_select');
   };
 
   // STEP 1: LANGUAGE SELECTION FIRST
@@ -95,7 +96,12 @@ export default function App() {
         isDark={isDark}
         onSelectLanguage={(lang) => {
           setLanguage(lang);
-          setStep('register');
+          const admins = loadAdmins();
+          if (admins.length > 0) {
+            setStep('login');
+          } else {
+            setStep('register');
+          }
         }}
       />
     );
@@ -216,6 +222,59 @@ export default function App() {
                   : 'bg-white border border-transparent text-neutral-900 placeholder-neutral-400'
               }`}
             />
+          </div>
+
+          {/* Language Selector */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setLangMenuOpen(!langMenuOpen)}
+              className="px-2.5 py-1 rounded text-xs font-semibold bg-white/10 hover:bg-white/20 transition-colors whitespace-nowrap flex items-center gap-1.5 focus:outline-none"
+              title="Change Language"
+            >
+              <span className="text-sm">🌐</span>
+              <span>
+                {language === 'Hindi'
+                  ? 'हिंदी'
+                  : language === 'Marathi'
+                  ? 'मराठी'
+                  : language === 'Marwari'
+                  ? 'मारवाड़ी'
+                  : 'English'}
+              </span>
+              <span className="text-[9px] opacity-75">▼</span>
+            </button>
+
+            {langMenuOpen && (
+              <div
+                className={`absolute right-0 mt-1.5 w-36 rounded shadow-lg border py-1 z-50 text-xs font-medium ${
+                  isDark
+                    ? 'bg-[#252525] border-[#444444] text-neutral-200'
+                    : 'bg-white border-neutral-200 text-neutral-800'
+                }`}
+              >
+                {[
+                  { code: 'English' as Language, label: 'English' },
+                  { code: 'Hindi' as Language, label: 'हिंदी (Hindi)' },
+                  { code: 'Marathi' as Language, label: 'मराठी (Marathi)' },
+                  { code: 'Marwari' as Language, label: 'मारवाड़ी (Marwari)' },
+                ].map((item) => (
+                  <button
+                    key={item.code}
+                    type="button"
+                    onClick={() => {
+                      setLanguage(item.code);
+                      setLangMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 hover:bg-[#1565C0] hover:text-white transition-colors ${
+                      language === item.code ? 'font-bold text-[#1565C0] dark:text-blue-400' : ''
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Dark Mode toggle */}

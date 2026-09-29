@@ -25,18 +25,30 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!adminName.trim() || !username.trim() || !password || !confirmPassword) {
-      setErrorMsg(t('error_required'));
+    if (!adminName.trim()) {
+      setErrorMsg(`${t('admin_name')} is required.`);
+      return;
+    }
+    if (!username.trim()) {
+      setErrorMsg(`${t('username')} is required.`);
+      return;
+    }
+    if (!password) {
+      setErrorMsg(`${t('password')} is required.`);
+      return;
+    }
+    if (!confirmPassword) {
+      setErrorMsg(`${t('confirm_password')} is required.`);
       return;
     }
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match');
+      setErrorMsg('Passwords do not match.');
       return;
     }
 
     const admins = loadAdmins();
     if (admins.some((a) => a.username.toLowerCase() === username.trim().toLowerCase())) {
-      setErrorMsg('Username already exists');
+      setErrorMsg('Username already exists. Please choose a different username.');
       return;
     }
 
@@ -51,15 +63,19 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
     setSuccessMsg(t('success_save'));
     setTimeout(() => {
       onSwitchMode('login');
-    }, 900);
+    }, 700);
   };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!username.trim() || !password) {
-      setErrorMsg(t('error_required'));
+    if (!username.trim()) {
+      setErrorMsg(`${t('username')} is required.`);
+      return;
+    }
+    if (!password) {
+      setErrorMsg(`${t('password')} is required.`);
       return;
     }
 
@@ -71,7 +87,7 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
     if (found) {
       onSuccess(found);
     } else {
-      setErrorMsg('Invalid username or password');
+      setErrorMsg('Invalid username or password.');
     }
   };
 
@@ -140,7 +156,7 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`w-full px-3 py-2 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-              placeholder="Enter password"
+              placeholder="••••••••"
             />
           </div>
 
@@ -154,26 +170,35 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className={`w-full px-3 py-2 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-                placeholder="Confirm password"
+                placeholder="••••••••"
               />
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full mt-2 py-2.5 px-4 rounded text-sm font-semibold bg-[#1565C0] text-white hover:bg-[#0D47A1] transition-colors"
+            className="w-full py-2.5 rounded text-sm font-semibold bg-[#1565C0] text-white hover:bg-[#0D47A1] transition-colors mt-2"
           >
             {mode === 'register' ? t('register') : t('login')}
           </button>
         </form>
 
-        <div className="mt-5 text-center">
-          <button
-            onClick={() => onSwitchMode(mode === 'register' ? 'login' : 'register')}
-            className="text-xs text-[#1565C0] hover:underline"
-          >
-            {mode === 'register' ? t('already_registered') : t('admin_registration')}
-          </button>
+        <div className="mt-6 text-center text-xs">
+          {mode === 'register' ? (
+            <button
+              onClick={() => onSwitchMode('login')}
+              className="text-[#1565C0] dark:text-blue-400 hover:underline"
+            >
+              {t('already_registered')}
+            </button>
+          ) : (
+            <button
+              onClick={() => onSwitchMode('register')}
+              className="text-[#1565C0] dark:text-blue-400 hover:underline"
+            >
+              Need an account? {t('register')}
+            </button>
+          )}
         </div>
       </div>
     </div>

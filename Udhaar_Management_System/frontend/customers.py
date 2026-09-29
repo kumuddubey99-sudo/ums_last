@@ -18,13 +18,26 @@ def create_add_customer_view(page: ft.Page, on_saved=None):
 
     id_field = ft.TextField(label=t("customer_id"), value=cust_id, disabled=True, width=340, border_color=border_color)
     name_field = ft.TextField(label=f"{t('customer_name')} *", width=340, border_color=border_color)
-    phone_field = ft.TextField(label=f"{t('mobile_number')} *", width=340, border_color=border_color)
-    alt_phone_field = ft.TextField(label=t("alternate_number"), width=340, border_color=border_color)
+    phone_field = ft.TextField(label=f"{t('mobile_number')} *", width=340, border_color=border_color, hint_text="10-digit mobile number", max_length=10)
+    alt_phone_field = ft.TextField(label=t("alternate_number"), width=340, border_color=border_color, max_length=10)
     email_field = ft.TextField(label=t("email"), width=340, border_color=border_color)
-    address_field = ft.TextField(label=t("address"), multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
+    address_field = ft.TextField(label=f"{t('address')} *", multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
 
-    created_field = ft.TextField(label="Created Date", value=created_d, disabled=True, width=165, border_color=border_color)
-    time_field = ft.TextField(label="Time", value=time_str, disabled=True, width=165, border_color=border_color)
+    created_field = ft.TextField(label=f"{t('created_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    updated_field = ft.TextField(label=f"{t('updated_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+
+    # Calendar pickers for created and updated dates
+    created_picker = ft.DatePicker(
+        on_change=lambda e: (setattr(created_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update())
+    )
+    updated_picker = ft.DatePicker(
+        on_change=lambda e: (setattr(updated_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update())
+    )
+    if hasattr(page, "overlay"):
+        page.overlay.extend([created_picker, updated_picker])
+
+    created_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(created_picker, "open", True) or page.update())
+    updated_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(updated_picker, "open", True) or page.update())
 
     msg_text = ft.Text("", size=13)
 
@@ -34,6 +47,8 @@ def create_add_customer_view(page: ft.Page, on_saved=None):
         alt_phone_field.value = ""
         email_field.value = ""
         address_field.value = ""
+        created_field.value = ""
+        updated_field.value = ""
         msg_text.value = ""
         page.update()
 
@@ -41,9 +56,49 @@ def create_add_customer_view(page: ft.Page, on_saved=None):
         msg_text.value = ""
         name = name_field.value.strip() if name_field.value else ""
         phone = phone_field.value.strip() if phone_field.value else ""
+        alt_phone = alt_phone_field.value.strip() if alt_phone_field.value else ""
+        address = address_field.value.strip() if address_field.value else ""
+        c_date = created_field.value.strip() if created_field.value else ""
+        u_date = updated_field.value.strip() if updated_field.value else ""
 
-        if not name or not phone:
-            msg_text.value = t("error_required")
+        if not name:
+            msg_text.value = f"{t('customer_name')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not phone:
+            msg_text.value = f"{t('mobile_number')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if len(phone) != 10 or not phone.isdigit():
+            msg_text.value = t("error_phone_10_digits")
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if alt_phone and (len(alt_phone) != 10 or not alt_phone.isdigit()):
+            msg_text.value = "Alternate number must contain exactly 10 digits."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not address:
+            msg_text.value = f"{t('address')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not c_date:
+            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not u_date:
+            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
             msg_text.color = "#D32F2F"
             page.update()
             return
@@ -51,9 +106,11 @@ def create_add_customer_view(page: ft.Page, on_saved=None):
         payload = {
             "customer_name": name,
             "phone_number": phone,
-            "alternate_number": alt_phone_field.value.strip() if alt_phone_field.value else "",
+            "alternate_number": alt_phone,
             "email": email_field.value.strip() if email_field.value else "",
-            "address": address_field.value.strip() if address_field.value else ""
+            "address": address,
+            "created_date": c_date,
+            "updated_date": u_date
         }
 
         res, code = api_post("/api/customers", payload)
@@ -214,13 +271,25 @@ def create_update_customer_view(page: ft.Page, initial_id=None):
         border_color=border_color
     )
 
-    name_field = ft.TextField(label=t("customer_name"), width=340, border_color=border_color)
-    phone_field = ft.TextField(label=t("mobile_number"), width=340, border_color=border_color)
-    alt_phone_field = ft.TextField(label=t("alternate_number"), width=340, border_color=border_color)
+    name_field = ft.TextField(label=f"{t('customer_name')} *", width=340, border_color=border_color)
+    phone_field = ft.TextField(label=f"{t('mobile_number')} *", width=340, border_color=border_color, hint_text="10-digit mobile number", max_length=10)
+    alt_phone_field = ft.TextField(label=t("alternate_number"), width=340, border_color=border_color, max_length=10)
     email_field = ft.TextField(label=t("email"), width=340, border_color=border_color)
-    address_field = ft.TextField(label=t("address"), multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
-    created_field = ft.TextField(label="Created Date", disabled=True, width=165, border_color=border_color)
-    updated_field = ft.TextField(label="Updated Date", disabled=True, width=165, border_color=border_color)
+    address_field = ft.TextField(label=f"{t('address')} *", multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
+    created_field = ft.TextField(label=f"{t('created_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+    updated_field = ft.TextField(label=f"{t('updated_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
+
+    up_created_picker = ft.DatePicker(
+        on_change=lambda e: (setattr(created_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update())
+    )
+    up_updated_picker = ft.DatePicker(
+        on_change=lambda e: (setattr(updated_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update())
+    )
+    if hasattr(page, "overlay"):
+        page.overlay.extend([up_created_picker, up_updated_picker])
+
+    created_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_created_picker, "open", True) or page.update())
+    updated_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_updated_picker, "open", True) or page.update())
 
     msg_text = ft.Text("", size=13)
 
@@ -254,17 +323,68 @@ def create_update_customer_view(page: ft.Page, initial_id=None):
     def on_update(e):
         cid = selected_id_dropdown.value
         if not cid:
-            msg_text.value = "Select customer"
+            msg_text.value = "Please select a customer to update."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        name = name_field.value.strip() if name_field.value else ""
+        phone = phone_field.value.strip() if phone_field.value else ""
+        alt_phone = alt_phone_field.value.strip() if alt_phone_field.value else ""
+        address = address_field.value.strip() if address_field.value else ""
+        c_date = created_field.value.strip() if created_field.value else ""
+        u_date = updated_field.value.strip() if updated_field.value else ""
+
+        if not name:
+            msg_text.value = f"{t('customer_name')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not phone:
+            msg_text.value = f"{t('mobile_number')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if len(phone) != 10 or not phone.isdigit():
+            msg_text.value = t("error_phone_10_digits")
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if alt_phone and (len(alt_phone) != 10 or not alt_phone.isdigit()):
+            msg_text.value = "Alternate number must contain exactly 10 digits."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not address:
+            msg_text.value = f"{t('address')} is required."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not c_date:
+            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
+            msg_text.color = "#D32F2F"
+            page.update()
+            return
+
+        if not u_date:
+            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
             msg_text.color = "#D32F2F"
             page.update()
             return
 
         payload = {
-            "customer_name": name_field.value.strip() if name_field.value else "",
-            "phone_number": phone_field.value.strip() if phone_field.value else "",
-            "alternate_number": alt_phone_field.value.strip() if alt_phone_field.value else "",
+            "customer_name": name,
+            "phone_number": phone,
+            "alternate_number": alt_phone,
             "email": email_field.value.strip() if email_field.value else "",
-            "address": address_field.value.strip() if address_field.value else ""
+            "address": address,
+            "created_date": c_date,
+            "updated_date": u_date
         }
 
         res, code = api_put(f"/api/customers/{cid}", payload)

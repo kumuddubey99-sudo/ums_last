@@ -6,8 +6,6 @@ import {
   savePayments,
   getNextPaymentId,
   calculateEnrichedTransactions,
-  getTodayDate,
-  loadTransactions,
 } from '../storage';
 
 interface Props {
@@ -38,7 +36,9 @@ export const PaymentViews: React.FC<Props> = ({
   const [autoPayId, setAutoPayId] = useState(getNextPaymentId());
   const [addTxnId, setAddTxnId] = useState(txns[0]?.transaction_id || '');
   const [addAmount, setAddAmount] = useState('');
-  const [addDate, setAddDate] = useState(getTodayDate());
+  const [addDate, setAddDate] = useState('');
+  const [addCreatedDate, setAddCreatedDate] = useState('');
+  const [addUpdatedDate, setAddUpdatedDate] = useState('');
   const [addMethod, setAddMethod] = useState('Cash');
   const [addRefId, setAddRefId] = useState('');
   const [addMsg, setAddMsg] = useState({ type: '', text: '' });
@@ -49,6 +49,8 @@ export const PaymentViews: React.FC<Props> = ({
   const [updateCustName, setUpdateCustName] = useState('');
   const [updateAmount, setUpdateAmount] = useState('');
   const [updateDate, setUpdateDate] = useState('');
+  const [updateCreatedDate, setUpdateCreatedDate] = useState('');
+  const [updateUpdatedDate, setUpdateUpdatedDate] = useState('');
   const [updateMethod, setUpdateMethod] = useState('Cash');
   const [updateRefId, setUpdateRefId] = useState('');
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
@@ -61,7 +63,9 @@ export const PaymentViews: React.FC<Props> = ({
       setUpdateTxnId(found.transaction_id);
       setUpdateCustName(found.customer_name || found.customer_id);
       setUpdateAmount(String(found.payment_amount));
-      setUpdateDate(found.payment_date);
+      setUpdateDate(found.payment_date || '');
+      setUpdateCreatedDate(found.created_date || found.payment_date || '');
+      setUpdateUpdatedDate(found.updated_date || '');
       setUpdateMethod(found.payment_method);
       setUpdateRefId(found.reference_id || '');
       setUpdateMsg({ type: '', text: '' });
@@ -80,18 +84,34 @@ export const PaymentViews: React.FC<Props> = ({
     setAddMsg({ type: '', text: '' });
 
     if (!addTxnId) {
-      setAddMsg({ type: 'error', text: 'Please select a transaction' });
+      setAddMsg({ type: 'error', text: `${t('transaction_id')} is required.` });
+      return;
+    }
+    if (!addAmount.trim()) {
+      setAddMsg({ type: 'error', text: `${t('payment_amount')} is required.` });
       return;
     }
     const amt = parseFloat(addAmount);
     if (isNaN(amt) || amt <= 0) {
-      setAddMsg({ type: 'error', text: 'Enter valid positive payment amount' });
+      setAddMsg({ type: 'error', text: 'Payment amount must be a positive number greater than 0.' });
+      return;
+    }
+    if (!addDate) {
+      setAddMsg({ type: 'error', text: `${t('payment_date')} is required. Please select from calendar.` });
+      return;
+    }
+    if (!addCreatedDate) {
+      setAddMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
+      return;
+    }
+    if (!addUpdatedDate) {
+      setAddMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
     const tObj = txns.find((t_item) => t_item.transaction_id === addTxnId);
     if (!tObj) {
-      setAddMsg({ type: 'error', text: 'Transaction not found' });
+      setAddMsg({ type: 'error', text: 'Transaction not found.' });
       return;
     }
 
@@ -102,7 +122,9 @@ export const PaymentViews: React.FC<Props> = ({
       customer_id: tObj.customer_id,
       customer_name: tObj.customer_name,
       payment_amount: amt,
-      payment_date: addDate || getTodayDate(),
+      payment_date: addDate,
+      created_date: addCreatedDate,
+      updated_date: addUpdatedDate,
       payment_method: addMethod,
       reference_id: addRefId.trim(),
     };
@@ -111,6 +133,9 @@ export const PaymentViews: React.FC<Props> = ({
     setAddMsg({ type: 'success', text: t('success_save') });
     setAddAmount('');
     setAddRefId('');
+    setAddDate('');
+    setAddCreatedDate('');
+    setAddUpdatedDate('');
     setAutoPayId(getNextPaymentId());
   };
 
@@ -119,12 +144,28 @@ export const PaymentViews: React.FC<Props> = ({
     setUpdateMsg({ type: '', text: '' });
 
     if (!updateSelectedId) {
-      setUpdateMsg({ type: 'error', text: 'Please select a payment' });
+      setUpdateMsg({ type: 'error', text: 'Please select a payment to update.' });
+      return;
+    }
+    if (!updateAmount.trim()) {
+      setUpdateMsg({ type: 'error', text: `${t('payment_amount')} is required.` });
       return;
     }
     const amt = parseFloat(updateAmount);
     if (isNaN(amt) || amt <= 0) {
-      setUpdateMsg({ type: 'error', text: 'Enter valid payment amount' });
+      setUpdateMsg({ type: 'error', text: 'Payment amount must be a positive number greater than 0.' });
+      return;
+    }
+    if (!updateDate) {
+      setUpdateMsg({ type: 'error', text: `${t('payment_date')} is required. Please select from calendar.` });
+      return;
+    }
+    if (!updateCreatedDate) {
+      setUpdateMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
+      return;
+    }
+    if (!updateUpdatedDate) {
+      setUpdateMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
@@ -134,7 +175,9 @@ export const PaymentViews: React.FC<Props> = ({
         return {
           ...p,
           payment_amount: amt,
-          payment_date: updateDate || getTodayDate(),
+          payment_date: updateDate,
+          created_date: updateCreatedDate,
+          updated_date: updateUpdatedDate,
           payment_method: updateMethod,
           reference_id: updateRefId.trim(),
         };
@@ -214,17 +257,38 @@ export const PaymentViews: React.FC<Props> = ({
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
+                <input
+                  type="date"
+                  value={addCreatedDate}
+                  onChange={(e) => setAddCreatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
+                <input
+                  type="date"
+                  value={addUpdatedDate}
+                  onChange={(e) => setAddUpdatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+            </div>
+
             <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('payment_method')}</label>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('payment_method')} *</label>
               <select
                 value={addMethod}
                 onChange={(e) => setAddMethod(e.target.value)}
                 className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
               >
-                <option value="Cash">Cash</option>
-                <option value="UPI">UPI / GPay / PhonePe</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Cheque">Cheque</option>
+                <option value="Cash">Cash (नकद)</option>
+                <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                <option value="Bank Transfer">Bank Transfer (बैंक ट्रांसफर)</option>
+                <option value="Cheque">Cheque (चेक)</option>
               </select>
             </div>
 
@@ -235,7 +299,7 @@ export const PaymentViews: React.FC<Props> = ({
                 value={addRefId}
                 onChange={(e) => setAddRefId(e.target.value)}
                 className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-                placeholder="UPI ref no. or cheque no."
+                placeholder="UPI Ref ID, Cheque No, Bank Txn ID"
               />
             </div>
 
@@ -250,7 +314,10 @@ export const PaymentViews: React.FC<Props> = ({
                 type="button"
                 onClick={() => {
                   setAddAmount('');
+                  setAddDate('');
                   setAddRefId('');
+                  setAddCreatedDate('');
+                  setAddUpdatedDate('');
                   setAddMsg({ type: '', text: '' });
                 }}
                 className="px-5 py-2 rounded text-xs font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"
@@ -288,8 +355,8 @@ export const PaymentViews: React.FC<Props> = ({
                 <thead className={`${isDark ? 'bg-[#252525] text-neutral-300' : 'bg-neutral-50 text-neutral-600'}`}>
                   <tr>
                     <th className="px-4 py-2.5 font-semibold">{t('payment_id')}</th>
-                    <th className="px-4 py-2.5 font-semibold">{t('customer_name')}</th>
                     <th className="px-4 py-2.5 font-semibold">{t('transaction_id')}</th>
+                    <th className="px-4 py-2.5 font-semibold">{t('customer_name')}</th>
                     <th className="px-4 py-2.5 font-semibold text-right">{t('payment_amount')}</th>
                     <th className="px-4 py-2.5 font-semibold">{t('payment_date')}</th>
                     <th className="px-4 py-2.5 font-semibold">{t('payment_method')}</th>
@@ -301,12 +368,12 @@ export const PaymentViews: React.FC<Props> = ({
                   {pays.map((p) => (
                     <tr key={p.payment_id} className="hover:bg-neutral-50 dark:hover:bg-[#252525]">
                       <td className="px-4 py-2.5 font-bold text-[#1565C0]">{p.payment_id}</td>
-                      <td className={`px-4 py-2.5 font-medium ${textColor}`}>{p.customer_name || p.customer_id}</td>
                       <td className={`px-4 py-2.5 font-mono ${textColor}`}>{p.transaction_id}</td>
-                      <td className="px-4 py-2.5 text-right font-bold tabular-nums text-emerald-600">
+                      <td className={`px-4 py-2.5 font-medium ${textColor}`}>{p.customer_name || p.customer_id}</td>
+                      <td className="px-4 py-2.5 text-right font-bold text-emerald-600 tabular-nums">
                         ₹{p.payment_amount.toFixed(2)}
                       </td>
-                      <td className={`px-4 py-2.5 ${subText}`}>{p.payment_date}</td>
+                      <td className={`px-4 py-2.5 ${textColor}`}>{p.payment_date}</td>
                       <td className={`px-4 py-2.5 ${textColor}`}>{p.payment_method}</td>
                       <td className={`px-4 py-2.5 font-mono ${subText}`}>{p.reference_id || '-'}</td>
                       <td className="px-4 py-2.5 text-right space-x-2">
@@ -380,15 +447,24 @@ export const PaymentViews: React.FC<Props> = ({
         </div>
 
         <form onSubmit={handleUpdate} className="space-y-3">
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span className={subText}>Transaction:</span>{' '}
-              <span className={`font-mono font-bold ${textColor}`}>{updateTxnId || '-'}</span>
-            </div>
-            <div>
-              <span className={subText}>Customer:</span>{' '}
-              <span className={`font-semibold ${textColor}`}>{updateCustName || '-'}</span>
-            </div>
+          <div>
+            <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('transaction_id')}</label>
+            <input
+              type="text"
+              value={updateTxnId}
+              disabled
+              className={`w-full px-3 py-1.5 rounded text-sm border opacity-70 ${inputBg}`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('customer_name')}</label>
+            <input
+              type="text"
+              value={updateCustName}
+              disabled
+              className={`w-full px-3 py-1.5 rounded text-sm border opacity-70 ${inputBg}`}
+            />
           </div>
 
           <div>
@@ -412,17 +488,38 @@ export const PaymentViews: React.FC<Props> = ({
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
+              <input
+                type="date"
+                value={updateCreatedDate}
+                onChange={(e) => setUpdateCreatedDate(e.target.value)}
+                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+              />
+            </div>
+            <div>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
+              <input
+                type="date"
+                value={updateUpdatedDate}
+                onChange={(e) => setUpdateUpdatedDate(e.target.value)}
+                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+              />
+            </div>
+          </div>
+
           <div>
-            <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('payment_method')}</label>
+            <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('payment_method')} *</label>
             <select
               value={updateMethod}
               onChange={(e) => setUpdateMethod(e.target.value)}
               className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
             >
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI / GPay / PhonePe</option>
-              <option value="Bank Transfer">Bank Transfer</option>
-              <option value="Cheque">Cheque</option>
+              <option value="Cash">Cash (नकद)</option>
+              <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+              <option value="Bank Transfer">Bank Transfer (बैंक ट्रांसफर)</option>
+              <option value="Cheque">Cheque (चेक)</option>
             </select>
           </div>
 
@@ -447,7 +544,10 @@ export const PaymentViews: React.FC<Props> = ({
               type="button"
               onClick={() => {
                 setUpdateAmount('');
+                setUpdateDate('');
                 setUpdateRefId('');
+                setUpdateCreatedDate('');
+                setUpdateUpdatedDate('');
                 setUpdateMsg({ type: '', text: '' });
               }}
               className="px-5 py-2 rounded text-xs font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"

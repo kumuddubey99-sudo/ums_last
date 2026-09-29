@@ -373,6 +373,10 @@ TRANSLATIONS = {
         "success_delete": "रिकॉर्ड कट गयो।",
         "error_required": "सगळी जरूरी बात भरो सा।",
         "error_unique_phone": "ओ फोन नंबर पहला सूं दर्ज है।",
+        "error_phone_10_digits": "मोबाइल नंबर में पूरा 10 अंक होणा चाहिजे।",
         "error_delete_restricted": "ईं गिराक रो उधारी व्यवहार बाकी है, काट नी सका।"
     }
 }
+
+TRANSLATIONS["Marwari"] = TRANSLATIONS["Malwari"]
+

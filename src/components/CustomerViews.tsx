@@ -42,6 +42,8 @@ export const CustomerViews: React.FC<Props> = ({
   const [addAltPhone, setAddAltPhone] = useState('');
   const [addEmail, setAddEmail] = useState('');
   const [addAddress, setAddAddress] = useState('');
+  const [addCreatedDate, setAddCreatedDate] = useState('');
+  const [addUpdatedDate, setAddUpdatedDate] = useState('');
   const [addMsg, setAddMsg] = useState({ type: '', text: '' });
   const [autoCustId, setAutoCustId] = useState(getNextCustomerId());
 
@@ -53,6 +55,7 @@ export const CustomerViews: React.FC<Props> = ({
   const [updateEmail, setUpdateEmail] = useState('');
   const [updateAddress, setUpdateAddress] = useState('');
   const [updateCreatedDate, setUpdateCreatedDate] = useState('');
+  const [updateUpdatedDate, setUpdateUpdatedDate] = useState('');
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
 
   // Load customer on select for Update
@@ -66,7 +69,8 @@ export const CustomerViews: React.FC<Props> = ({
       setUpdateAltPhone(found.alternate_number || '');
       setUpdateEmail(found.email || '');
       setUpdateAddress(found.address || '');
-      setUpdateCreatedDate(found.created_date);
+      setUpdateCreatedDate(found.created_date || '');
+      setUpdateUpdatedDate(found.updated_date || '');
       setUpdateMsg({ type: '', text: '' });
     }
   };
@@ -78,12 +82,49 @@ export const CustomerViews: React.FC<Props> = ({
     }
   }, [view, selectedCustomerId]);
 
+  const validatePhone = (phone: string) => {
+    return /^\d{10}$/.test(phone.trim());
+  };
+
   const handleSaveAdd = (e: React.FormEvent) => {
     e.preventDefault();
     setAddMsg({ type: '', text: '' });
 
-    if (!addName.trim() || !addPhone.trim()) {
-      setAddMsg({ type: 'error', text: t('error_required') });
+    if (!addName.trim()) {
+      setAddMsg({ type: 'error', text: `${t('customer_name')} is required.` });
+      return;
+    }
+    if (!addPhone.trim()) {
+      setAddMsg({ type: 'error', text: `${t('mobile_number')} is required.` });
+      return;
+    }
+    if (!/^\d{10}$/.test(addPhone.trim())) {
+      setAddMsg({ type: 'error', text: t('error_phone_10_digits') });
+      return;
+    }
+
+    if (addAltPhone.trim() && !/^\d{10}$/.test(addAltPhone.trim())) {
+      setAddMsg({ type: 'error', text: 'Alternate number must contain exactly 10 digits.' });
+      return;
+    }
+
+    if (!addAddress.trim()) {
+      setAddMsg({ type: 'error', text: `${t('address')} is required.` });
+      return;
+    }
+
+    if (addEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addEmail.trim())) {
+      setAddMsg({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
+    }
+
+    if (!addCreatedDate) {
+      setAddMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
+      return;
+    }
+
+    if (!addUpdatedDate) {
+      setAddMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
@@ -100,8 +141,8 @@ export const CustomerViews: React.FC<Props> = ({
       alternate_number: addAltPhone.trim(),
       email: addEmail.trim(),
       address: addAddress.trim(),
-      created_date: getTodayDate(),
-      updated_date: getTodayDate(),
+      created_date: addCreatedDate,
+      updated_date: addUpdatedDate,
       time: getCurrentTime(),
     };
 
@@ -112,6 +153,8 @@ export const CustomerViews: React.FC<Props> = ({
     setAddAltPhone('');
     setAddEmail('');
     setAddAddress('');
+    setAddCreatedDate('');
+    setAddUpdatedDate('');
     setAutoCustId(getNextCustomerId());
   };
 
@@ -120,11 +163,45 @@ export const CustomerViews: React.FC<Props> = ({
     setUpdateMsg({ type: '', text: '' });
 
     if (!updateSelectedId) {
-      setUpdateMsg({ type: 'error', text: 'Please select a customer' });
+      setUpdateMsg({ type: 'error', text: 'Please select a customer to update.' });
       return;
     }
-    if (!updateName.trim() || !updatePhone.trim()) {
-      setUpdateMsg({ type: 'error', text: t('error_required') });
+    if (!updateName.trim()) {
+      setUpdateMsg({ type: 'error', text: `${t('customer_name')} is required.` });
+      return;
+    }
+    if (!updatePhone.trim()) {
+      setUpdateMsg({ type: 'error', text: `${t('mobile_number')} is required.` });
+      return;
+    }
+
+    if (!/^\d{10}$/.test(updatePhone.trim())) {
+      setUpdateMsg({ type: 'error', text: t('error_phone_10_digits') });
+      return;
+    }
+
+    if (updateAltPhone.trim() && !/^\d{10}$/.test(updateAltPhone.trim())) {
+      setUpdateMsg({ type: 'error', text: 'Alternate number must contain exactly 10 digits.' });
+      return;
+    }
+
+    if (!updateAddress.trim()) {
+      setUpdateMsg({ type: 'error', text: `${t('address')} is required.` });
+      return;
+    }
+
+    if (updateEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateEmail.trim())) {
+      setUpdateMsg({ type: 'error', text: 'Please enter a valid email address.' });
+      return;
+    }
+
+    if (!updateCreatedDate) {
+      setUpdateMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
+      return;
+    }
+
+    if (!updateUpdatedDate) {
+      setUpdateMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
@@ -143,7 +220,8 @@ export const CustomerViews: React.FC<Props> = ({
           alternate_number: updateAltPhone.trim(),
           email: updateEmail.trim(),
           address: updateAddress.trim(),
-          updated_date: getTodayDate(),
+          created_date: updateCreatedDate,
+          updated_date: updateUpdatedDate,
           time: getCurrentTime(),
         };
       }
@@ -234,7 +312,7 @@ export const CustomerViews: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('address')}</label>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('address')} *</label>
               <textarea
                 rows={2}
                 value={addAddress}
@@ -244,9 +322,29 @@ export const CustomerViews: React.FC<Props> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs text-neutral-400 pt-1">
-              <div>Created Date: <span className="font-mono">{getTodayDate()}</span></div>
-              <div>Time: <span className="font-mono">{getCurrentTime()}</span></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
+                <input
+                  type="date"
+                  value={addCreatedDate}
+                  onChange={(e) => setAddCreatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
+                <input
+                  type="date"
+                  value={addUpdatedDate}
+                  onChange={(e) => setAddUpdatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+            </div>
+
+            <div className="text-xs text-neutral-400 pt-1">
+              Time: <span className="font-mono">{getCurrentTime()}</span>
             </div>
 
             <div className="flex gap-3 pt-3">
@@ -446,7 +544,7 @@ export const CustomerViews: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('address')}</label>
+              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('address')} *</label>
               <textarea
                 rows={2}
                 value={updateAddress}
@@ -455,9 +553,26 @@ export const CustomerViews: React.FC<Props> = ({
               />
             </div>
 
-            {updateCreatedDate && (
-              <div className="text-xs text-neutral-400">Created Date: {updateCreatedDate}</div>
-            )}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
+                <input
+                  type="date"
+                  value={updateCreatedDate}
+                  onChange={(e) => setUpdateCreatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
+                <input
+                  type="date"
+                  value={updateUpdatedDate}
+                  onChange={(e) => setUpdateUpdatedDate(e.target.value)}
+                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+                />
+              </div>
+            </div>
 
             <div className="flex gap-3 pt-3">
               <button
