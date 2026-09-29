@@ -256,20 +256,6 @@ def main(page: ft.Page):
             border=ft.border.only(bottom=ft.BorderSide(1, colors["border"]))
         )
 
-        # Footer
-        footer = ft.Container(
-            content=ft.Row(
-                [
-                    ft.Text(f"{t('shop_name')} · {t('app_title')}", size=12, color="#757575"),
-                    ft.Text("Nav Durga Super Market - TYIT", size=12, color="#757575")
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-            ),
-            bgcolor=colors["footer"],
-            padding=ft.padding.symmetric(horizontal=20, vertical=8),
-            border=ft.border.only(top=ft.BorderSide(1, colors["border"]))
-        )
-
         # Main Content routing
         if state.get("search_results") is not None:
             content_view = render_search_results(colors)
@@ -331,8 +317,7 @@ def main(page: ft.Page):
         main_container.content = ft.Column(
             [
                 header,
-                body_row,
-                footer
+                body_row
             ],
             spacing=0,
             expand=True
@@ -412,7 +397,8 @@ def main(page: ft.Page):
         reg_view = create_register_view(
             page,
             on_register_success=lambda: go_to_login(),
-            on_go_to_login=lambda: go_to_login()
+            on_go_to_login=lambda: go_to_login(),
+            on_back_to_language=lambda: go_to_language()
         )
         main_container.content = ft.Container(
             content=reg_view,
@@ -428,7 +414,8 @@ def main(page: ft.Page):
         login_view = create_login_view(
             page,
             on_login_success=lambda admin_info: on_logged_in(admin_info),
-            on_go_to_register=lambda: go_to_register()
+            on_go_to_register=lambda: go_to_register(),
+            on_back_to_language=lambda: go_to_language()
         )
         main_container.content = ft.Container(
             content=login_view,
@@ -438,6 +425,10 @@ def main(page: ft.Page):
         )
         page.bgcolor = colors["bg"]
         page.update()
+
+    def go_to_language():
+        state["current_view"] = "language"
+        render()
 
     def go_to_login():
         state["current_view"] = "login"

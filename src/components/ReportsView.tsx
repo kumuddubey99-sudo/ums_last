@@ -31,7 +31,6 @@ export const ReportsView: React.FC<Props> = ({ isDark, language }) => {
 
   const reportTypeKeys: Record<string, string> = {
     'Customer Report': 'customer_report',
-    'Credit Transaction Report': 'credit_transaction_report',
     'Credited Items Report': 'credited_items_report',
     'Payment Report': 'payment_report',
     'Outstanding Balance Report': 'outstanding_balance_report',
@@ -41,7 +40,6 @@ export const ReportsView: React.FC<Props> = ({ isDark, language }) => {
 
   const reportTypes = [
     'Customer Report',
-    'Credit Transaction Report',
     'Credited Items Report',
     'Payment Report',
     'Outstanding Balance Report',
@@ -288,22 +286,6 @@ export const ReportsView: React.FC<Props> = ({ isDark, language }) => {
                 {custs.map((c) => (
                   <option key={c.customer_id} value={c.customer_id}>
                     {c.customer_id} - {c.customer_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('credit_transactions')}</label>
-              <select
-                value={selectedTxnId}
-                onChange={(e) => setSelectedTxnId(e.target.value)}
-                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-              >
-                <option value="">{t('all_transactions')}</option>
-                {txns.map((tx) => (
-                  <option key={tx.transaction_id} value={tx.transaction_id}>
-                    {tx.transaction_id} - {tx.customer_name}
                   </option>
                 ))}
               </select>

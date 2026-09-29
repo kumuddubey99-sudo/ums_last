@@ -35,10 +35,16 @@ def init_db():
     CREATE TABLE IF NOT EXISTS admins (
         admin_id TEXT PRIMARY KEY,
         admin_name TEXT NOT NULL,
+        role TEXT DEFAULT 'Admin',
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
     );
     """)
+
+    try:
+        cursor.execute("ALTER TABLE admins ADD COLUMN role TEXT DEFAULT 'Admin';")
+    except Exception:
+        pass
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS customers (
@@ -107,6 +113,7 @@ def on_startup():
 # Pydantic Schemas
 class AdminRegisterRequest(BaseModel):
     admin_name: str
+    role: Optional[str] = "Admin"
     username: str
     password: str
     confirm_password: str
@@ -224,9 +231,10 @@ def register_admin(req: AdminRegisterRequest):
         raise HTTPException(status_code=400, detail="Username already exists")
 
     admin_id = get_next_id("ADM", "admins", "admin_id")
+    role_val = req.role.strip() if req.role and req.role.strip() else "Admin"
     cursor.execute(
-        "INSERT INTO admins (admin_id, admin_name, username, password) VALUES (?, ?, ?, ?)",
-        (admin_id, req.admin_name.strip(), req.username.strip(), req.password)
+        "INSERT INTO admins (admin_id, admin_name, role, username, password) VALUES (?, ?, ?, ?, ?)",
+        (admin_id, req.admin_name.strip(), role_val, req.username.strip(), req.password)
     )
     conn.commit()
     conn.close()

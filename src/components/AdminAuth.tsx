@@ -9,12 +9,21 @@ interface Props {
   mode: 'register' | 'login';
   onSuccess: (admin: Admin) => void;
   onSwitchMode: (mode: 'register' | 'login') => void;
+  onBackToLanguageSelect?: () => void;
 }
 
-export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, onSwitchMode }) => {
+export const AdminAuth: React.FC<Props> = ({
+  isDark,
+  language,
+  mode,
+  onSuccess,
+  onSwitchMode,
+  onBackToLanguageSelect,
+}) => {
   const t = (key: string) => TRANSLATIONS[language]?.[key] || key;
 
   const [adminName, setAdminName] = useState('');
+  const [role, setRole] = useState('Admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -60,6 +69,7 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
       admin_name: adminName.trim(),
       username: username.trim(),
       password,
+      role: role.trim() || 'Admin',
     };
 
     saveAdmins([...admins, newAdmin]);
@@ -101,6 +111,18 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 ${isDark ? 'bg-[#121212]' : 'bg-[#F5F7FA]'}`}>
       <div className={`w-full max-w-sm rounded-lg border p-8 shadow-sm ${cardBg}`}>
+        {onBackToLanguageSelect && (
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={onBackToLanguageSelect}
+              className="inline-flex items-center gap-1.5 text-xs text-[#1565C0] dark:text-blue-400 hover:underline font-semibold"
+            >
+              ← {t('select_language')}
+            </button>
+          </div>
+        )}
+
         <div className="text-center mb-6">
           <div className="text-xs font-semibold text-[#1565C0] uppercase tracking-wider">
             {t('shop_name')}
@@ -134,6 +156,24 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
                 className={`w-full px-3 py-2 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
                 placeholder="Enter admin name"
               />
+            </div>
+          )}
+
+          {mode === 'register' && (
+            <div>
+              <label className={`block text-xs font-medium mb-1 ${isDark ? 'text-neutral-300' : 'text-neutral-700'}`}>
+                {t('role')} *
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className={`w-full px-3 py-2 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
+              >
+                <option value="Admin">Admin (व्यवस्थापक)</option>
+                <option value="Manager">Manager (प्रबंधक)</option>
+                <option value="Staff">Staff (कर्मचारी)</option>
+                <option value="Cashier">Cashier (कैशियर)</option>
+              </select>
             </div>
           )}
 
@@ -208,21 +248,34 @@ export const AdminAuth: React.FC<Props> = ({ isDark, language, mode, onSuccess, 
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs">
-          {mode === 'register' ? (
-            <button
-              onClick={() => onSwitchMode('login')}
-              className="text-[#1565C0] dark:text-blue-400 hover:underline"
-            >
-              {t('already_registered')}
-            </button>
-          ) : (
-            <button
-              onClick={() => onSwitchMode('register')}
-              className="text-[#1565C0] dark:text-blue-400 hover:underline"
-            >
-              Need an account? {t('register')}
-            </button>
+        <div className="mt-6 text-center text-xs space-y-2">
+          <div>
+            {mode === 'register' ? (
+              <button
+                onClick={() => onSwitchMode('login')}
+                className="text-[#1565C0] dark:text-blue-400 hover:underline"
+              >
+                {t('already_registered')}
+              </button>
+            ) : (
+              <button
+                onClick={() => onSwitchMode('register')}
+                className="text-[#1565C0] dark:text-blue-400 hover:underline"
+              >
+                Need an account? {t('register')}
+              </button>
+            )}
+          </div>
+          {onBackToLanguageSelect && (
+            <div>
+              <button
+                type="button"
+                onClick={onBackToLanguageSelect}
+                className="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:underline"
+              >
+                ← {t('select_language')}
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -135,6 +135,7 @@ export default function App() {
         mode="register"
         onSuccess={() => setStep('login')}
         onSwitchMode={(m) => setStep(m)}
+        onBackToLanguageSelect={() => setStep('language_select')}
       />
     );
   }
@@ -152,6 +153,7 @@ export default function App() {
           setActiveRoute('dashboard');
         }}
         onSwitchMode={(m) => setStep(m)}
+        onBackToLanguageSelect={() => setStep('language_select')}
       />
     );
   }
@@ -635,16 +637,6 @@ export default function App() {
           )}
         </main>
       </div>
-
-      {/* FOOTER */}
-      <footer className={`px-4 py-2 text-xs flex justify-between border-t ${footerBg}`}>
-        <span className={isDark ? 'text-neutral-400' : 'text-neutral-600'}>
-          {t('shop_name')} · {t('app_title')}
-        </span>
-        <span className={isDark ? 'text-neutral-500' : 'text-neutral-500'}>
-          Nav Durga Super Market - TYIT Project
-        </span>
-      </footer>
     </div>
   );
 }

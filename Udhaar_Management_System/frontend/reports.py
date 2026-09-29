@@ -22,7 +22,6 @@ def create_reports_view(page: ft.Page):
 
     report_types = [
         "Customer Report",
-        "Credit Transaction Report",
         "Credited Items Report",
         "Payment Report",
         "Outstanding Balance Report",
@@ -362,7 +361,7 @@ def create_reports_view(page: ft.Page):
                 content=ft.Column(
                     [
                         ft.Row([report_type_dropdown, lang_dropdown], spacing=12),
-                        ft.Row([customer_dropdown, txn_dropdown], spacing=12),
+                        customer_dropdown,
                         ft.Row([from_date_field, to_date_field], spacing=10),
                         ft.Row(
                             [

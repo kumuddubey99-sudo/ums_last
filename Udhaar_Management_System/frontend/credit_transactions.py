@@ -31,20 +31,14 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
     )
     txn_date_field = ft.TextField(label=f"{t('transaction_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
     due_date_field = ft.TextField(label=f"{t('due_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
-    created_date_field = ft.TextField(label=f"{t('created_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
-    updated_date_field = ft.TextField(label=f"{t('updated_date')} *", value="", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
 
     t_picker = ft.DatePicker(on_change=lambda e: (setattr(txn_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
     d_picker = ft.DatePicker(on_change=lambda e: (setattr(due_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
-    c_picker = ft.DatePicker(on_change=lambda e: (setattr(created_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
-    u_picker = ft.DatePicker(on_change=lambda e: (setattr(updated_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
     if hasattr(page, "overlay"):
-        page.overlay.extend([t_picker, d_picker, c_picker, u_picker])
+        page.overlay.extend([t_picker, d_picker])
 
     txn_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(t_picker, "open", True) or page.update())
     due_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(d_picker, "open", True) or page.update())
-    created_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(c_picker, "open", True) or page.update())
-    updated_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(u_picker, "open", True) or page.update())
 
     amount_field = ft.TextField(label=f"{t('total_amount')} (₹) *", width=340, border_color=border_color)
     note_field = ft.TextField(label=t("notes"), multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
@@ -56,8 +50,6 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
         note_field.value = ""
         txn_date_field.value = ""
         due_date_field.value = ""
-        created_date_field.value = ""
-        updated_date_field.value = ""
         msg_text.value = ""
         page.update()
 
@@ -81,18 +73,6 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
             page.update()
             return
 
-        if not created_date_field.value.strip():
-            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
-            msg_text.color = "#D32F2F"
-            page.update()
-            return
-
-        if not updated_date_field.value.strip():
-            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
-            msg_text.color = "#D32F2F"
-            page.update()
-            return
-
         if not amount_field.value.strip():
             msg_text.value = f"{t('total_amount')} is required."
             msg_text.color = "#D32F2F"
@@ -109,12 +89,13 @@ def create_add_transaction_view(page: ft.Page, on_saved=None):
             page.update()
             return
 
+        today_str = datetime.now().strftime("%Y-%m-%d")
         payload = {
             "customer_id": cust_dropdown.value,
             "transaction_date": txn_date_field.value.strip(),
             "due_date": due_date_field.value.strip(),
-            "created_date": created_date_field.value.strip(),
-            "updated_date": updated_date_field.value.strip(),
+            "created_date": today_str,
+            "updated_date": today_str,
             "total_amount": amt,
             "note": note_field.value.strip() if note_field.value else ""
         }
@@ -290,20 +271,14 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
     cust_dropdown = ft.Dropdown(label=f"{t('customers')} *", options=cust_options, width=340, border_color=border_color)
     txn_date_field = ft.TextField(label=f"{t('transaction_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
     due_date_field = ft.TextField(label=f"{t('due_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
-    created_date_field = ft.TextField(label=f"{t('created_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
-    updated_date_field = ft.TextField(label=f"{t('updated_date')} *", width=165, border_color=border_color, hint_text="YYYY-MM-DD")
 
     up_t_picker = ft.DatePicker(on_change=lambda e: (setattr(txn_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
     up_d_picker = ft.DatePicker(on_change=lambda e: (setattr(due_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
-    up_c_picker = ft.DatePicker(on_change=lambda e: (setattr(created_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
-    up_u_picker = ft.DatePicker(on_change=lambda e: (setattr(updated_date_field, "value", e.control.value.strftime("%Y-%m-%d") if e.control.value else ""), page.update()))
     if hasattr(page, "overlay"):
-        page.overlay.extend([up_t_picker, up_d_picker, up_c_picker, up_u_picker])
+        page.overlay.extend([up_t_picker, up_d_picker])
 
     txn_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_t_picker, "open", True) or page.update())
     due_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_d_picker, "open", True) or page.update())
-    created_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_c_picker, "open", True) or page.update())
-    updated_date_field.suffix = ft.IconButton(ft.Icons.CALENDAR_MONTH, on_click=lambda _: setattr(up_u_picker, "open", True) or page.update())
 
     amount_field = ft.TextField(label=f"{t('total_amount')} (₹) *", width=340, border_color=border_color)
     note_field = ft.TextField(label=t("notes"), multiline=True, min_lines=2, max_lines=3, width=340, border_color=border_color)
@@ -320,8 +295,6 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
             cust_dropdown.value = data.get("customer_id")
             txn_date_field.value = data.get("transaction_date", "")
             due_date_field.value = data.get("due_date", "")
-            created_date_field.value = data.get("created_date", "")
-            updated_date_field.value = data.get("updated_date", "")
             amount_field.value = str(data.get("total_amount", 0.0))
             note_field.value = data.get("note", "")
             status_field.value = data.get("payment_status", "Pending")
@@ -333,8 +306,6 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
         note_field.value = ""
         txn_date_field.value = ""
         due_date_field.value = ""
-        created_date_field.value = ""
-        updated_date_field.value = ""
         status_field.value = ""
         msg_text.value = ""
         page.update()
@@ -365,18 +336,6 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
             page.update()
             return
 
-        if not created_date_field.value.strip():
-            msg_text.value = f"{t('created_date')} is required. Please select from calendar."
-            msg_text.color = "#D32F2F"
-            page.update()
-            return
-
-        if not updated_date_field.value.strip():
-            msg_text.value = f"{t('updated_date')} is required. Please select from calendar."
-            msg_text.color = "#D32F2F"
-            page.update()
-            return
-
         if not amount_field.value.strip():
             msg_text.value = f"{t('total_amount')} is required."
             msg_text.color = "#D32F2F"
@@ -397,8 +356,7 @@ def create_update_transaction_view(page: ft.Page, initial_id=None):
             "customer_id": cust_dropdown.value,
             "transaction_date": txn_date_field.value.strip(),
             "due_date": due_date_field.value.strip(),
-            "created_date": created_date_field.value.strip(),
-            "updated_date": updated_date_field.value.strip(),
+            "updated_date": datetime.now().strftime("%Y-%m-%d"),
             "total_amount": amt,
             "note": note_field.value.strip() if note_field.value else ""
         }

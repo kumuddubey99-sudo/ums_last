@@ -2,7 +2,7 @@ import flet as ft
 from api import api_post
 from language import t
 
-def create_login_view(page: ft.Page, on_login_success, on_go_to_register):
+def create_login_view(page: ft.Page, on_login_success, on_go_to_register, on_back_to_language=None):
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     card_bg = "#1E1E1E" if is_dark else "#FFFFFF"
     text_color = "#FFFFFF" if is_dark else "#212121"
@@ -33,29 +33,38 @@ def create_login_view(page: ft.Page, on_login_success, on_go_to_register):
             error_msg.value = res.get("detail", res.get("error", "Invalid username or password"))
             page.update()
 
+    column_controls = [
+        ft.Text(t("shop_name"), size=14, weight=ft.FontWeight.W_600, color="#1565C0"),
+        ft.Text(t("login"), size=22, weight=ft.FontWeight.BOLD, color=text_color),
+        ft.Container(height=10),
+        username_field,
+        password_field,
+        error_msg,
+        ft.Container(height=5),
+        ft.ElevatedButton(
+            t("login"),
+            bgcolor="#1565C0",
+            color="#FFFFFF",
+            width=320,
+            height=42,
+            on_click=on_login_click
+        ),
+        ft.TextButton(
+            t("admin_registration"),
+            on_click=lambda e: on_go_to_register()
+        )
+    ]
+    if on_back_to_language:
+        column_controls.append(
+            ft.TextButton(
+                f"← {t('select_language')}",
+                on_click=lambda e: on_back_to_language()
+            )
+        )
+
     return ft.Container(
         content=ft.Column(
-            [
-                ft.Text(t("shop_name"), size=14, weight=ft.FontWeight.W_600, color="#1565C0"),
-                ft.Text(t("login"), size=22, weight=ft.FontWeight.BOLD, color=text_color),
-                ft.Container(height=10),
-                username_field,
-                password_field,
-                error_msg,
-                ft.Container(height=5),
-                ft.ElevatedButton(
-                    t("login"),
-                    bgcolor="#1565C0",
-                    color="#FFFFFF",
-                    width=320,
-                    height=42,
-                    on_click=on_login_click
-                ),
-                ft.TextButton(
-                    t("admin_registration"),
-                    on_click=lambda e: on_go_to_register()
-                )
-            ],
+            column_controls,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=12
         ),
