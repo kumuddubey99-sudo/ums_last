@@ -37,8 +37,6 @@ export const PaymentViews: React.FC<Props> = ({
   const [addTxnId, setAddTxnId] = useState(txns[0]?.transaction_id || '');
   const [addAmount, setAddAmount] = useState('');
   const [addDate, setAddDate] = useState('');
-  const [addCreatedDate, setAddCreatedDate] = useState('');
-  const [addUpdatedDate, setAddUpdatedDate] = useState('');
   const [addMethod, setAddMethod] = useState('Cash');
   const [addRefId, setAddRefId] = useState('');
   const [addMsg, setAddMsg] = useState({ type: '', text: '' });
@@ -49,8 +47,6 @@ export const PaymentViews: React.FC<Props> = ({
   const [updateCustName, setUpdateCustName] = useState('');
   const [updateAmount, setUpdateAmount] = useState('');
   const [updateDate, setUpdateDate] = useState('');
-  const [updateCreatedDate, setUpdateCreatedDate] = useState('');
-  const [updateUpdatedDate, setUpdateUpdatedDate] = useState('');
   const [updateMethod, setUpdateMethod] = useState('Cash');
   const [updateRefId, setUpdateRefId] = useState('');
   const [updateMsg, setUpdateMsg] = useState({ type: '', text: '' });
@@ -64,8 +60,6 @@ export const PaymentViews: React.FC<Props> = ({
       setUpdateCustName(found.customer_name || found.customer_id);
       setUpdateAmount(String(found.payment_amount));
       setUpdateDate(found.payment_date || '');
-      setUpdateCreatedDate(found.created_date || found.payment_date || '');
-      setUpdateUpdatedDate(found.updated_date || '');
       setUpdateMethod(found.payment_method);
       setUpdateRefId(found.reference_id || '');
       setUpdateMsg({ type: '', text: '' });
@@ -100,14 +94,6 @@ export const PaymentViews: React.FC<Props> = ({
       setAddMsg({ type: 'error', text: `${t('payment_date')} is required. Please select from calendar.` });
       return;
     }
-    if (!addCreatedDate) {
-      setAddMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
-      return;
-    }
-    if (!addUpdatedDate) {
-      setAddMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
-      return;
-    }
 
     const tObj = txns.find((t_item) => t_item.transaction_id === addTxnId);
     if (!tObj) {
@@ -123,8 +109,6 @@ export const PaymentViews: React.FC<Props> = ({
       customer_name: tObj.customer_name,
       payment_amount: amt,
       payment_date: addDate,
-      created_date: addCreatedDate,
-      updated_date: addUpdatedDate,
       payment_method: addMethod,
       reference_id: addRefId.trim(),
     };
@@ -134,8 +118,6 @@ export const PaymentViews: React.FC<Props> = ({
     setAddAmount('');
     setAddRefId('');
     setAddDate('');
-    setAddCreatedDate('');
-    setAddUpdatedDate('');
     setAutoPayId(getNextPaymentId());
   };
 
@@ -153,19 +135,11 @@ export const PaymentViews: React.FC<Props> = ({
     }
     const amt = parseFloat(updateAmount);
     if (isNaN(amt) || amt <= 0) {
-      setUpdateMsg({ type: 'error', text: 'Payment amount must be a positive number greater than 0.' });
+      setAddMsg({ type: 'error', text: 'Payment amount must be a positive number greater than 0.' });
       return;
     }
     if (!updateDate) {
       setUpdateMsg({ type: 'error', text: `${t('payment_date')} is required. Please select from calendar.` });
-      return;
-    }
-    if (!updateCreatedDate) {
-      setUpdateMsg({ type: 'error', text: `${t('created_date')} is required. Please select from calendar.` });
-      return;
-    }
-    if (!updateUpdatedDate) {
-      setUpdateMsg({ type: 'error', text: `${t('updated_date')} is required. Please select from calendar.` });
       return;
     }
 
@@ -176,8 +150,6 @@ export const PaymentViews: React.FC<Props> = ({
           ...p,
           payment_amount: amt,
           payment_date: updateDate,
-          created_date: updateCreatedDate,
-          updated_date: updateUpdatedDate,
           payment_method: updateMethod,
           reference_id: updateRefId.trim(),
         };
@@ -257,27 +229,6 @@ export const PaymentViews: React.FC<Props> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
-                <input
-                  type="date"
-                  value={addCreatedDate}
-                  onChange={(e) => setAddCreatedDate(e.target.value)}
-                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-                />
-              </div>
-              <div>
-                <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
-                <input
-                  type="date"
-                  value={addUpdatedDate}
-                  onChange={(e) => setAddUpdatedDate(e.target.value)}
-                  className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-                />
-              </div>
-            </div>
-
             <div>
               <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('payment_method')} *</label>
               <select
@@ -316,8 +267,6 @@ export const PaymentViews: React.FC<Props> = ({
                   setAddAmount('');
                   setAddDate('');
                   setAddRefId('');
-                  setAddCreatedDate('');
-                  setAddUpdatedDate('');
                   setAddMsg({ type: '', text: '' });
                 }}
                 className="px-5 py-2 rounded text-xs font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"
@@ -488,27 +437,6 @@ export const PaymentViews: React.FC<Props> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('created_date')} *</label>
-              <input
-                type="date"
-                value={updateCreatedDate}
-                onChange={(e) => setUpdateCreatedDate(e.target.value)}
-                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-              />
-            </div>
-            <div>
-              <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('updated_date')} *</label>
-              <input
-                type="date"
-                value={updateUpdatedDate}
-                onChange={(e) => setUpdateUpdatedDate(e.target.value)}
-                className={`w-full px-3 py-1.5 rounded text-sm border focus:outline-none focus:border-[#1565C0] ${inputBg}`}
-              />
-            </div>
-          </div>
-
           <div>
             <label className={`block text-xs font-medium mb-1 ${subText}`}>{t('payment_method')} *</label>
             <select
@@ -546,8 +474,6 @@ export const PaymentViews: React.FC<Props> = ({
                 setUpdateAmount('');
                 setUpdateDate('');
                 setUpdateRefId('');
-                setUpdateCreatedDate('');
-                setUpdateUpdatedDate('');
                 setUpdateMsg({ type: '', text: '' });
               }}
               className="px-5 py-2 rounded text-xs font-semibold border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300"

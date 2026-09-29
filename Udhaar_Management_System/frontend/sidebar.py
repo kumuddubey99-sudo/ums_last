@@ -34,10 +34,18 @@ def create_sidebar(page: ft.Page, on_navigate, on_logout, active_route="dashboar
 
     content_controls = []
     
-    # Store title / brand indicator in sidebar header
+    # Store title / brand indicator with application logo in sidebar header
     content_controls.append(
         ft.Container(
-            content=ft.Text(t("shop_name"), weight=ft.FontWeight.BOLD, size=15, color=text_color),
+            content=ft.Row(
+                [
+                    ft.Icon(ft.Icons.ACCOUNT_BALANCE_WALLET, color="#1565C0", size=20),
+                    ft.Text(t("shop_name"), weight=ft.FontWeight.BOLD, size=15, color=text_color),
+                ],
+                alignment=ft.MainAxisAlignment.START,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=8,
+            ),
             padding=ft.padding.only(left=16, right=16, top=16, bottom=12),
             border=ft.border.only(bottom=ft.BorderSide(1, border_color))
         )

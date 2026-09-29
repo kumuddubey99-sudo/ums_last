@@ -54,8 +54,6 @@ export interface Payment {
   payment_date: string;
   payment_method: string;
   reference_id: string;
-  created_date?: string;
-  updated_date?: string;
 }
 
 export interface CustomerPerformance {

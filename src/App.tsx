@@ -293,8 +293,9 @@ export default function App() {
         {sidebarOpen && (
           <aside className={`w-60 shrink-0 border-r flex flex-col justify-between overflow-y-auto ${sidebarBg}`}>
             <div className="p-3">
-              <div className={`px-3 py-2 text-xs font-bold border-b mb-3 ${isDark ? 'border-[#333333] text-neutral-300' : 'border-[#E0E0E0] text-neutral-800'}`}>
-                {t('shop_name')}
+              <div className={`px-3 py-2 text-xs font-bold border-b mb-3 flex items-center gap-2 ${isDark ? 'border-[#333333] text-neutral-300' : 'border-[#E0E0E0] text-neutral-800'}`}>
+                <span className="text-xl">💳</span>
+                <span>{t('shop_name')}</span>
               </div>
 
               <nav className="space-y-4">
