@@ -2,7 +2,7 @@ import flet as ft
 from api import api_get
 from language import t
 
-def create_dashboard_view(page: ft.Page, on_view_transaction=None):
+def create_dashboard_view(page: ft.Page, on_view_transaction=None, on_update_transaction=None):
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     text_color = "#FFFFFF" if is_dark else "#212121"
     sub_text = "#A0A0A0" if is_dark else "#616161"
@@ -53,18 +53,30 @@ def create_dashboard_view(page: ft.Page, on_view_transaction=None):
     for txn in recent_txns:
         st = txn.get("payment_status", "Pending")
         st_color = get_status_color(st)
+        tid = txn["transaction_id"]
+        action_controls = []
+        if on_view_transaction:
+            action_controls.append(
+                ft.TextButton("View", on_click=lambda e, t_id=tid: on_view_transaction(t_id))
+            )
+        if on_update_transaction:
+            action_controls.append(
+                ft.TextButton(t("update"), on_click=lambda e, t_id=tid: on_update_transaction(t_id))
+            )
+
         rows.append(
             ft.DataRow(
                 cells=[
                     ft.DataCell(
-                        ft.Text(txn["transaction_id"], weight=ft.FontWeight.BOLD, color="#1565C0"),
-                        on_tap=lambda e, tid=txn["transaction_id"]: on_view_transaction(tid) if on_view_transaction else None
+                        ft.Text(tid, weight=ft.FontWeight.BOLD, color="#1565C0"),
+                        on_tap=lambda e, t_id=tid: on_view_transaction(t_id) if on_view_transaction else None
                     ),
                     ft.DataCell(ft.Text(txn.get("customer_name", "-"), color=text_color)),
                     ft.DataCell(ft.Text(f"₹{txn.get('total_amount', 0):,.2f}", color=text_color)),
                     ft.DataCell(ft.Text(txn.get("transaction_date", "-"), color=text_color)),
                     ft.DataCell(ft.Text(txn.get("due_date", "-"), color=text_color)),
                     ft.DataCell(ft.Text(st, color=st_color, weight=ft.FontWeight.W_600)),
+                    ft.DataCell(ft.Row(action_controls, spacing=0) if action_controls else ft.Text("-")),
                 ]
             )
         )
@@ -78,6 +90,7 @@ def create_dashboard_view(page: ft.Page, on_view_transaction=None):
                 ft.DataColumn(ft.Text(t("transaction_date"), weight=ft.FontWeight.BOLD, color=text_color)),
                 ft.DataColumn(ft.Text(t("due_date"), weight=ft.FontWeight.BOLD, color=text_color)),
                 ft.DataColumn(ft.Text(t("payment_status"), weight=ft.FontWeight.BOLD, color=text_color)),
+                ft.DataColumn(ft.Text("Actions", weight=ft.FontWeight.BOLD, color=text_color)),
             ],
             rows=rows,
             heading_row_color="#2A2A2A" if is_dark else "#F0F4F8",

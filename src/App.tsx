@@ -1,4 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import {
+  LayoutDashboard,
+  UserPlus,
+  Users,
+  UserCog,
+  TrendingUp,
+  ShoppingCart,
+  Package,
+  FileEdit,
+  CreditCard,
+  Receipt,
+  FilePenLine,
+  FilePlus,
+  BookOpen,
+  FileText,
+  Wallet,
+  BarChart3,
+  LogOut,
+} from 'lucide-react';
 import { TRANSLATIONS, Language } from './translations';
 import { Admin, searchSystem, loadAdmins } from './storage';
 import { LanguageSelect } from './components/LanguageSelect';
@@ -146,46 +165,112 @@ export default function App() {
 
   const menuSections = [
     {
-      items: [{ route: 'dashboard' as ActiveRoute, label: t('dashboard') }],
+      items: [
+        {
+          route: 'dashboard' as ActiveRoute,
+          label: t('dashboard'),
+          icon: <LayoutDashboard size={15} className="shrink-0" />,
+        },
+      ],
     },
     {
       header: t('customers'),
       items: [
-        { route: 'customers_add' as ActiveRoute, label: t('add_customer') },
-        { route: 'customers_view' as ActiveRoute, label: t('view_customers') },
-        { route: 'customers_update' as ActiveRoute, label: t('update_customer') },
-        { route: 'customer_performance' as ActiveRoute, label: t('customer_performance') },
+        {
+          route: 'customers_add' as ActiveRoute,
+          label: t('add_customer'),
+          icon: <UserPlus size={15} className="shrink-0" />,
+        },
+        {
+          route: 'customers_view' as ActiveRoute,
+          label: t('view_customers'),
+          icon: <Users size={15} className="shrink-0" />,
+        },
+        {
+          route: 'customers_update' as ActiveRoute,
+          label: t('update_customer'),
+          icon: <UserCog size={15} className="shrink-0" />,
+        },
+        {
+          route: 'customer_performance' as ActiveRoute,
+          label: t('customer_performance'),
+          icon: <TrendingUp size={15} className="shrink-0" />,
+        },
       ],
     },
     {
       header: t('credit_items'),
       items: [
-        { route: 'items_add' as ActiveRoute, label: t('add_credit_item') },
-        { route: 'items_view' as ActiveRoute, label: t('view_credit_items') },
-        { route: 'items_update' as ActiveRoute, label: t('update_credit_item') },
+        {
+          route: 'items_add' as ActiveRoute,
+          label: t('add_credit_item'),
+          icon: <ShoppingCart size={15} className="shrink-0" />,
+        },
+        {
+          route: 'items_view' as ActiveRoute,
+          label: t('view_credit_items'),
+          icon: <Package size={15} className="shrink-0" />,
+        },
+        {
+          route: 'items_update' as ActiveRoute,
+          label: t('update_credit_item'),
+          icon: <FileEdit size={15} className="shrink-0" />,
+        },
       ],
     },
     {
       header: t('payments'),
       items: [
-        { route: 'payments_add' as ActiveRoute, label: t('add_payment') },
-        { route: 'payments_view' as ActiveRoute, label: t('view_payments') },
-        { route: 'payments_update' as ActiveRoute, label: t('update_payment') },
+        {
+          route: 'payments_add' as ActiveRoute,
+          label: t('add_payment'),
+          icon: <CreditCard size={15} className="shrink-0" />,
+        },
+        {
+          route: 'payments_view' as ActiveRoute,
+          label: t('view_payments'),
+          icon: <Receipt size={15} className="shrink-0" />,
+        },
+        {
+          route: 'payments_update' as ActiveRoute,
+          label: t('update_payment'),
+          icon: <FilePenLine size={15} className="shrink-0" />,
+        },
       ],
     },
     {
       header: t('credit_transactions'),
       items: [
-        { route: 'transactions_add' as ActiveRoute, label: t('add_transaction') },
-        { route: 'transactions_view' as ActiveRoute, label: t('view_transactions') },
-        { route: 'transactions_update' as ActiveRoute, label: t('update_transaction') },
+        {
+          route: 'transactions_add' as ActiveRoute,
+          label: t('add_transaction'),
+          icon: <FilePlus size={15} className="shrink-0" />,
+        },
+        {
+          route: 'transactions_view' as ActiveRoute,
+          label: t('view_transactions'),
+          icon: <BookOpen size={15} className="shrink-0" />,
+        },
+        {
+          route: 'transactions_update' as ActiveRoute,
+          label: t('update_transaction'),
+          icon: <FileText size={15} className="shrink-0" />,
+        },
       ],
     },
     {
       header: t('reports'),
       items: [
-        { route: 'outstanding_balance' as ActiveRoute, label: t('outstanding_balance') },
-        { route: 'reports' as ActiveRoute, label: t('reports') },
+        {
+          route: 'outstanding_balance' as ActiveRoute,
+          label: t('outstanding_balance'),
+          icon: <Wallet size={15} className="shrink-0" />,
+        },
+        {
+          route: 'reports' as ActiveRoute,
+          label: t('reports'),
+          icon: <BarChart3 size={15} className="shrink-0" />,
+        },
       ],
     },
   ];
@@ -312,7 +397,7 @@ export default function App() {
                         <button
                           key={item.route}
                           onClick={() => handleNavigate(item.route)}
-                          className={`w-full text-left px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                          className={`w-full flex items-center gap-2.5 text-left px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                             isActive
                               ? 'bg-[#1565C0] text-white'
                               : isDark
@@ -320,7 +405,8 @@ export default function App() {
                               : 'text-neutral-700 hover:bg-neutral-100'
                           }`}
                         >
-                          {item.label}
+                          {item.icon}
+                          <span className="truncate">{item.label}</span>
                         </button>
                       );
                     })}
@@ -332,9 +418,10 @@ export default function App() {
             <div className="p-3 border-t dark:border-[#333333]">
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
+                className="w-full flex items-center gap-2 text-left px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
               >
-                ← {t('logout')}
+                <LogOut size={15} className="shrink-0" />
+                <span>{t('logout')}</span>
               </button>
             </div>
           </aside>
@@ -395,6 +482,7 @@ export default function App() {
                   isDark={isDark}
                   language={language}
                   onViewTransaction={(tid) => handleNavigate('transaction_summary', tid)}
+                  onUpdateTransaction={(tid) => handleNavigate('transactions_update', tid)}
                 />
               )}
 
@@ -533,6 +621,7 @@ export default function App() {
                   isDark={isDark}
                   language={language}
                   onViewCustomer={(cid) => handleNavigate('customer_summary', cid)}
+                  onUpdateCustomer={(cid) => handleNavigate('customers_update', cid)}
                 />
               )}
 

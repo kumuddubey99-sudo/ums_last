@@ -6,9 +6,10 @@ interface Props {
   isDark: boolean;
   language: Language;
   onViewCustomer: (customerId: string) => void;
+  onUpdateCustomer?: (customerId: string) => void;
 }
 
-export const OutstandingView: React.FC<Props> = ({ isDark, language, onViewCustomer }) => {
+export const OutstandingView: React.FC<Props> = ({ isDark, language, onViewCustomer, onUpdateCustomer }) => {
   const t = (key: string) => TRANSLATIONS[language]?.[key] || key;
   const records = getOutstandingBalances();
 
@@ -35,6 +36,7 @@ export const OutstandingView: React.FC<Props> = ({ isDark, language, onViewCusto
                   <th className="px-4 py-2.5 font-semibold text-right">{t('pending_amount')}</th>
                   <th className="px-4 py-2.5 font-semibold">{t('due_date')}</th>
                   <th className="px-4 py-2.5 font-semibold">{t('payment_status')}</th>
+                  <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 dark:divide-[#333333]">
@@ -60,6 +62,22 @@ export const OutstandingView: React.FC<Props> = ({ isDark, language, onViewCusto
                       }>
                         {t(r.status.toLowerCase())}
                       </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right space-x-2">
+                      <button
+                        onClick={() => onViewCustomer(r.customer_id)}
+                        className="text-xs text-[#1565C0] hover:underline"
+                      >
+                        View
+                      </button>
+                      {onUpdateCustomer && (
+                        <button
+                          onClick={() => onUpdateCustomer(r.customer_id)}
+                          className="text-xs text-[#1565C0] hover:underline"
+                        >
+                          {t('update')}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

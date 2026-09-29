@@ -306,11 +306,11 @@ def main(page: ft.Page):
         elif state["active_route"] == "transaction_summary":
             content_view = create_transaction_summary_view(page, state.get("selected_transaction_id"), on_back=lambda: navigate_to("transactions_view"))
         elif state["active_route"] == "outstanding_balance":
-            content_view = create_outstanding_balance_view(page, on_view_summary=on_view_customer_summary)
+            content_view = create_outstanding_balance_view(page, on_view_summary=on_view_customer_summary, on_go_to_update=on_go_to_update_cust)
         elif state["active_route"] == "reports":
             content_view = create_reports_view(page)
         else:
-            content_view = create_dashboard_view(page)
+            content_view = create_dashboard_view(page, on_view_transaction=on_view_txn_summary, on_update_transaction=on_go_to_update_txn)
 
         body_row = ft.Row(
             [

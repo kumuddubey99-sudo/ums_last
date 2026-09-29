@@ -744,6 +744,7 @@ export const CustomerViews: React.FC<Props> = ({
                   <th className="px-4 py-2.5 font-semibold text-center">{t('overdue_count')}</th>
                   <th className="px-4 py-2.5 font-semibold text-right">{t('performance_percentage')}</th>
                   <th className="px-4 py-2.5 font-semibold">{t('performance_status')}</th>
+                  <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200 dark:divide-[#333333]">
@@ -774,6 +775,20 @@ export const CustomerViews: React.FC<Props> = ({
                       }>
                         {t(perf.performance_status.toLowerCase())}
                       </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right space-x-2">
+                      <button
+                        onClick={() => onNavigate('customer_summary', perf.customer_id)}
+                        className="text-xs text-[#1565C0] hover:underline"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => onNavigate('customers_update', perf.customer_id)}
+                        className="text-xs text-[#1565C0] hover:underline"
+                      >
+                        {t('update')}
+                      </button>
                     </td>
                   </tr>
                 ))}

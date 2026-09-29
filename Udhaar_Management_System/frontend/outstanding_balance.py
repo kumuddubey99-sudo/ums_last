@@ -2,7 +2,7 @@ import flet as ft
 from api import api_get
 from language import t
 
-def create_outstanding_balance_view(page: ft.Page, on_view_summary):
+def create_outstanding_balance_view(page: ft.Page, on_view_summary, on_go_to_update=None):
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     card_bg = "#1E1E1E" if is_dark else "#FFFFFF"
     text_color = "#FFFFFF" if is_dark else "#212121"
@@ -23,6 +23,14 @@ def create_outstanding_balance_view(page: ft.Page, on_view_summary):
     for item in data:
         cid = item["customer_id"]
         st = item.get("status", "Pending")
+        action_controls = [
+            ft.TextButton("View", on_click=lambda e, customer_id=cid: on_view_summary(customer_id))
+        ]
+        if on_go_to_update:
+            action_controls.append(
+                ft.TextButton(t("update"), on_click=lambda e, customer_id=cid: on_go_to_update(customer_id))
+            )
+
         rows.append(
             ft.DataRow(
                 cells=[
@@ -36,6 +44,7 @@ def create_outstanding_balance_view(page: ft.Page, on_view_summary):
                     ft.DataCell(ft.Text(f"₹{item['pending_amount']:,.2f}", weight=ft.FontWeight.BOLD, color=text_color)),
                     ft.DataCell(ft.Text(item.get("due_date", "-"), color=text_color)),
                     ft.DataCell(ft.Text(st, color=get_status_color(st), weight=ft.FontWeight.W_600)),
+                    ft.DataCell(ft.Row(action_controls, spacing=0)),
                 ]
             )
         )
@@ -53,6 +62,7 @@ def create_outstanding_balance_view(page: ft.Page, on_view_summary):
                         ft.DataColumn(ft.Text(t("pending_amount"), weight=ft.FontWeight.BOLD, color=text_color)),
                         ft.DataColumn(ft.Text(t("due_date"), weight=ft.FontWeight.BOLD, color=text_color)),
                         ft.DataColumn(ft.Text(t("payment_status"), weight=ft.FontWeight.BOLD, color=text_color)),
+                        ft.DataColumn(ft.Text("Actions", weight=ft.FontWeight.BOLD, color=text_color)),
                     ],
                     rows=rows,
                     heading_row_color="#2A2A2A" if is_dark else "#F0F4F8",
